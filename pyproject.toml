@@ -1,0 +1,22 @@
+[project]
+name = "vitext2sql"
+version = "0.1.0"
+description = "An attempt at building a usable text2sql interface"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "dotenv>=0.9.9",
+    "func-timeout>=4.3.5",
+    "llama-cpp-python>=0.3.14",
+    "marimo>=0.14.10",
+    "openai>=1.97.1",
+    "pandas>=2.3.1",
+    "sqlglot>=27.1.0",
+    "torch>=2.7.1",
+    "transformers>=4.53.1",
+]
+
+[dependency-groups]
+dev = [
+    "marimo[lsp]>=0.14.10",
+]

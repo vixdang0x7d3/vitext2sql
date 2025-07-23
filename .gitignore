@@ -1,0 +1,18 @@
+# sensitive stuffs :-)
+claude-log/
+CLAUDE.md
+.env
+
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Marimo exports
+__marimo__/*.html
