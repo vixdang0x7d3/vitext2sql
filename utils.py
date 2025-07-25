@@ -1,7 +1,10 @@
-def extract_all_blocks(content, code_format):
+def extract_all_blocks(content: str, code_format: str | None = None) -> list:
     """Extract and return a list of sql blocks"""
     sql_blocks = []
     start = 0
+
+    if code_format is None:
+        code_format = ""
 
     while True:
         sql_query_start = content.find(f"```{code_format}", start)
@@ -20,4 +23,4 @@ def extract_all_blocks(content, code_format):
 
         start = sql_query_end + len("```")
 
-        return sql_blocks
+    return sql_blocks

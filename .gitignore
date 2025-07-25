@@ -16,3 +16,6 @@ wheels/
 
 # Marimo exports
 __marimo__/*.html
+
+# Model files
+models/
