@@ -120,7 +120,7 @@ def _(db_path, dbman):
 
     for query in test_queries:
         try:
-            result = dbman._exec_query_sqlite_timeout(query, db_path, max_len=10)
+            result = dbman.exec_query_sqlite(query, db_path, max_len=10)
             if result is not None:
                 print(f"[x] Query executed: {query[:50]}...")
                 print(f"    Result shape: {result.shape} ")
@@ -160,7 +160,7 @@ def _(Execption, db_path, dbman):
 
         for test_name, query in edge_cases:
             try:
-                result = dbman._exec_query_sqlite_timeout(
+                result = dbman.exec_query_sqlite(
                     query, db_path, max_len=5
                 )
                 if result is None:
@@ -194,7 +194,7 @@ def _(db_path, dbman, time):
         """
 
         start_time = time.time()
-        result = dbman._exec_query_sqlite_timeout(slow_query, db_path, timeout=2)
+        result = dbman.exec_query_sqlite(slow_query, db_path, timeout=2)
         elapsed = time.time() - start_time
 
         if result is None and elapsed < 5:
@@ -222,7 +222,7 @@ def _(db_path, dbman):
 
         limits = [5, 100, 1000]
         for limit in limits:
-            result = dbman._exec_query_sqlite_timeout(
+            result = dbman.exec_query_sqlite(
                 large_table_query, db_path, max_len=limit
             )
             if result is not None:
@@ -317,7 +317,7 @@ def _(db_path, dbman, pd):
 
         # Test data type in result
 
-        result = dbman._exec_query_sqlite_timeout("SELECT * FROM customer LIMIT 5", db_path)
+        result = dbman.exec_query_sqlite("SELECT * FROM customer LIMIT 5", db_path)
         if result is not None:
           print("✓ Query result is DataFrame:", isinstance(result, pd.DataFrame))
           print(f"✓ Result shape: {result.shape}")
@@ -342,28 +342,28 @@ def _(db_path, dbman):
     def _():
         # Detailed schema validation
         table_names, schemas = dbman.get_schema(db_path, add_sample_rows=True)
-    
+
         for schema in schemas[:3]:  # Test first 3 tables
             table_name = schema["table_fullname"]
             print(f"\n--- Testing {table_name} ---")
-    
+
             # Validate all expected keys exist
             required_keys = ["table_fullname", "column_names", "column_types", "sample_rows"]
             for key in required_keys:
                 assert key in schema, f"Missing key {key} in {table_name}"
-    
+
             # Validate columns match between names and types
             assert len(schema["column_names"]) == len(schema["column_types"])
             print(f"[x] Columns: {len(schema['column_names'])}")
-    
+
             # Test actual query against this table
             test_query = f"SELECT {', '.join(schema['column_names'][:3])} FROM {table_name} LIMIT 2"
-            result = dbman._exec_query_sqlite_timeout(test_query, db_path)
+            result = dbman.exec_query_sqlite(test_query, db_path)
             if result is not None:
                 print(f"[x] Query test passed: {result.shape}")
             else:
                 print(f"[x] Query test failed")
-    
+
         print("\n[x] All schema validation tests completed")
 
 

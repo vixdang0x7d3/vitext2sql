@@ -10,6 +10,8 @@ from openai import OpenAI, AzureOpenAI
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 
+import requests
+
 
 from llama_cpp import Llama
 
@@ -25,7 +27,7 @@ class ChatMessage:
 class LLMClient(ABC):
     def __init__(
         self,
-        model: str = "o4-mini",
+        model: str = "gpt-3.5-turbo",
         temperature: float = 1,
         system_prompt: str | None = None,
     ):
@@ -49,7 +51,7 @@ class LLMClient(ABC):
     def get_model_response(
         self, prompt: str, code_format: str | None = None
     ) -> list[str]:
-        """Get response and extraact code blocks with retry logic"""
+        """Get response and extract code blocks with retry logic"""
         code_blocks = []
         max_try = 3
         while code_blocks == [] and max_try > 0:
@@ -106,12 +108,82 @@ class LLMClient(ABC):
             self.messages.append(ChatMessage(role="system", content=self.system_prompt))
 
 
+class OpenAICompatClient(LLMClient):
+    def __init__(
+        self,
+        model: str = "gpt-3.5-turbo",
+        temperature: float = 1.0,
+        base_url: str = "https://api.openai.com/v1",
+        api_key: str = "sk_dummy",
+        timeout: int = 60,
+        max_retries: int = 3,
+        system_prompt: str | None = None,
+        **kwargs,
+    ):
+        super().__init__(model, temperature, system_prompt)
+        self.base_url = base_url.rstrip("/")
+        self.api_key = api_key
+        self.timeout = timeout
+        self.max_retries = max_retries
+        self.extra_kwargs = kwargs
+        self._init_client()
+
+    def _init_client(self):
+        """Initialize OpenAI client with custom base URL"""
+        self.client = OpenAI(
+            base_url=self.base_url,
+            api_key=self.api_key,
+            timeout=self.timeout,
+            max_retries=self.max_retries,
+        )
+
+    def _generate_response(self, messages: list[ChatMessage]) -> str:
+        """Generate response using OpenAI-compatible API"""
+        openai_messages = [
+            {"role": msg.role, "content": msg.content} for msg in messages
+        ]
+
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=openai_messages,
+                temperature=self.temperature,
+                **self.extra_kwargs,
+            )
+            return response.choices[0].message.content or ""
+
+        except Exception as e:
+            print(f"Error generating response: {e}")
+            raise
+
+    def list_models(self) -> list[str]:
+        """List available models from the server"""
+        try:
+            models = self.client.models.list()
+            return [model.id for model in models.data]
+        except Exception as e:
+            print(f"Error generating response: {e}")
+            return []
+
+    def health_check(self) -> bool:
+        """Check if the server is healthy"""
+        try:
+            response = requests.get(
+                f"{self.base_url}/models",
+                headers={"Authorization": f"Bearer {self.api_key}"},
+                timeout=5,
+            )
+            return response.status_code == 200
+        except Exception:
+            return False
+
+
 class OpenAIClient(LLMClient):
     """OpenAI/Azure OpenAI chat client implementation"""
 
     def __init__(
         self,
-        model: str = "o4-mini",
+        model: str = "gpt-3.5-turbo",
         temperature: float = 1.0,
         azure: bool = False,
         system_prompt: str | None = None,
@@ -122,13 +194,7 @@ class OpenAIClient(LLMClient):
 
     def _init_client(self):
         if not self.azure:
-            if self.model in ["o1-preview", "o1-mini"]:
-                self.client = OpenAI(
-                    api_key=os.environ.get("OPENAI_API_KEY"),
-                    # api_version="2024-12-01-preview",
-                )
-            else:
-                self.client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+            self.client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
         else:
             if self.model in ["o1-preview", "o1-mini", "o3", "o4-mini"]:
                 api_version = "2024-12-01-preview"
@@ -284,9 +350,35 @@ class LLMClientFactory:
 
         if client_type in ["openai", "azure"]:
             return OpenAIClient(**kwargs)
+        elif client_type in ["azure"]:
+            return OpenAIClient(azure=True, **kwargs)
+        elif client_type in ["openai_compat"]:
+            return OpenAICompatClient(**kwargs)
         elif client_type in ["huggingface", "hf", "transformers"]:
             return HuggingFaceClient(**kwargs)  # ty: ignore
         elif client_type in ["llamacpp", "llama_cpp", "llama-cpp"]:
             return LlamaClient(**kwargs)  # ty: ignore
         else:
             raise ValueError(f"Unsupported client type: {client_type}")
+
+
+def create_vllm_client(base_url: str, model: str, **kwargs) -> OpenAICompatClient:
+    """Create client for vLLM server"""
+    return OpenAICompatClient(
+        base_url=f"{base_url}/v1",
+        model=model,
+        api_key="dummy",
+        **kwargs,
+    )
+
+
+def create_ollama_client(
+    base_url: str = "http://localhost:11434", model: str = "llama2", **kwargs
+) -> OpenAICompatClient:
+    """Create client for Ollama server"""
+    return OpenAICompatClient(
+        base_url=f"{base_url}/v1",
+        model=model,
+        api_key="dummy",
+        **kwargs,
+    )

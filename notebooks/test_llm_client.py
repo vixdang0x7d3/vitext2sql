@@ -22,6 +22,7 @@ def _():
         HuggingFaceClient,
         LlamaClient,
         LLMClientFactory,
+        create_ollama_client,
     )
     from utils import extract_all_blocks
 
@@ -33,6 +34,7 @@ def _():
         LLMClientFactory,
         LlamaClient,
         OpenAIClient,
+        create_ollama_client,
         extract_all_blocks,
         mo,
         patch,
@@ -423,6 +425,26 @@ def _(HuggingFaceClient):
 
         empty_response = client.get_response("")
     _()
+    return
+
+
+@app.cell
+def _(create_ollama_client):
+    print("Connecting to Ollama server:")
+    try:
+        ollama_client = create_ollama_client(
+            base_url="http://localhost:11434",
+            model="llama2",
+            temperature=0.8
+        )
+    
+        if ollama_client.health_check():
+            response = ollama_client.get_response("Explain neural networks briefly.")
+            print(f"Ollama Response: {response[:100]}...")
+        else:
+            print("Ollama server not available")
+    except Exception as e:
+        print(f"Ollama Error: {e}")
     return
 
 
