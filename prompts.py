@@ -26,7 +26,11 @@ Please think step by step and answer only one complete SQL in {db_type} dialect 
 [SQL Query]
 ```
 
-Here are information about the user's question and the database structure as well as some additional context:
+
+User natural language question:
+{question}
+
+Revelent database entities and some additional information that may be useful to answer the question.
 {base_prompt}
 """
 

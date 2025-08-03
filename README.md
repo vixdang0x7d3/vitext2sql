@@ -1,18 +1,24 @@
-# Text-to-SQL
+# Overview
 
-Converts natural language queries into SQL statements for SQLite databases.
+Automated text2sql system for generating and executing SQL queries on SQLite databases.
+
+Features:
+* LLM-based schema linking
+* Database content retrieval (basic)
+* Retrieval of additional context (few-shot examples, database description) for better SQL generation.
+* Execution-guided self-refinement to enforce syntax and result consistency
 
 ## Project structure
 (TODO)
 
-## Setup
+## Development
+
+Setup:
 
 ```bash
 git clone https://vixdang0x7d3/vitext2sql
 uv sync
 ```
-
-## Development
 
 Interactive development with marimo notebooks:
 
@@ -22,7 +28,7 @@ uv run marimo edit notebooks/<file-name>.py
 
 ## Dependencies
 
-- SQLGlot: SQL parsing
-- Marimo: Interactive notebooks
-- Pandas: Data handling
-- Transformers, OpenAI, LlamaCpp: LLM providers
+- SQLGlot: SQL parsing and validation
+- Marimo: Interactive notebooks for development and testing
+- Pandas: Handling query result
+- Transformers, OpenAI, LlamaCpp: Provide LLM access

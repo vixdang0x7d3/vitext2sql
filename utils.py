@@ -70,6 +70,9 @@ def deseripress_df(data_dict, name="df"):
     encoded = data_dict[f"{name}_csv_data"]
     compressed = base64.b64decode(encoded.encode("utf-8"))
     csv_string = gzip.decompress(compressed).decode("utf-8")
+
+    print(csv_string)
+
     df = pd.read_csv(io.StringIO(csv_string))
 
     if f"{name}_dtypes" in data_dict:

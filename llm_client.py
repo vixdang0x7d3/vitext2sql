@@ -1,19 +1,17 @@
-import sys
 import os
+import requests
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from utils import extract_all_blocks
 
 from openai import OpenAI, AzureOpenAI
+from llama_cpp import Llama
 
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 
-import requests
-
-
-from llama_cpp import Llama
+from utils import extract_all_blocks
+from tokenizer import TokenizerInterface
 
 
 @dataclass
@@ -29,14 +27,171 @@ class LLMClient(ABC):
         self,
         model: str = "gpt-3.5-turbo",
         temperature: float = 1,
+        tokenizer: TokenizerInterface | None = None,
+        max_context_length: int = 4096,
+        context_buffer_ratio: float = 0.1,
+        preserve_recent_exchanges: int = 2,
         system_prompt: str | None = None,
     ):
         self.model = model
         self.temperature = temperature
-        self.system_prompt = system_prompt
+        self.tokenizer = tokenizer
+        self.max_context_length = max_context_length
         self.messages: list[ChatMessage] = []
+        self.messages_trimmed_count = 0
+        self.preserve_recent_exchanges = preserve_recent_exchanges
+        self.effective_max_tokens = int(max_context_length * (1 - context_buffer_ratio))
+
+        self.system_prompt = system_prompt
         if system_prompt:
             self.messages.append(ChatMessage(role="system", content=system_prompt))
+
+    def _count_with_custom_tokenizer(self, text: str) -> int:
+        """Count tokens with provider-specific optimization"""
+        if hasattr(self.tokenizer, "encode"):
+            return len(self.tokenizer.encode(text, add_special_tokens=False))
+        elif callable(self.tokenizer):
+            return self.tokenizer(text)
+
+        return max(1, len(text) // 4)
+
+    def _count_tokens(self, text: str) -> int:
+        """Use injected tokenizer"""
+        if hasattr(self, "tokenizer") and self.tokenizer:
+            return self._count_with_custom_tokenizer(text)
+
+        # Try provider-specific counting
+        if hasattr(self, "_provider_count_tokens"):
+            return self._provider_count_tokens(text)
+
+        return max(1, len(text) // 4)
+
+    def _estimate_message_tokens(self, messages: list[ChatMessage]) -> int:
+        """Estimate total tokens for message list"""
+        total = 0
+        for msg in messages:
+            # Count content tokens
+            total += self._count_tokens(msg.content)
+            # Add overhead for role/formatting (typically 2-4 tokens per message)
+            total += 3
+
+        # Add overhead for conversation structure
+        total += 10
+        return total
+
+    def _get_preserved_messages(self) -> list[ChatMessage]:
+        """Get messages that should always be preserved"""
+        preserved = []
+
+        # Always preserve system message
+        if self.messages and self.messages[0].role == "system":
+            preserved.append(self.messages[0])
+
+        non_system_messages = [m for m in self.messages if m.role != "system"]
+
+        # Take last N*2 messages (N user-assiten)
+        recent_count = min(len(non_system_messages), self.preserve_recent_exchanges * 2)
+        preserved.extend(non_system_messages[-recent_count:])
+
+        return preserved
+
+    def _get_trimmable_messages(
+        self, preserved_messages: list[ChatMessage]
+    ) -> list[ChatMessage]:
+        """Get messages that can be trimmed"""
+        preserved_set = set(id(msg) for msg in preserved_messages)
+        return [msg for msg in self.messages if id(msg) not in preserved_set]
+
+    def _trim_to_fit(
+        self,
+        messages: list[ChatMessage],
+        target_tokens: int,
+    ) -> list[ChatMessage]:
+        """Trim messages to fit, preserving conversation pairs"""
+        if not messages:
+            return []
+
+        result = []
+        current_tokens = 0
+        i = len(messages) - 1
+
+        # Work backwards, keeping complete user-assistant pairs
+        while i >= 0:
+            if (
+                messages[i].role == "assistant"
+                and i > 0
+                and messages[i - 1].role == "user"
+            ):
+                # Try to add user-assistant pair
+                pair_tokens = (
+                    self._count_tokens(messages[i - 1].content)
+                    + self._count_tokens(messages[i].content)
+                    + 6  # +6 for formatting
+                )
+
+                if current_tokens + pair_tokens <= target_tokens:
+                    result.insert(0, messages[i - 1])
+                    result.insert(1, messages[i])
+                    current_tokens += pair_tokens
+                    i -= 2
+                else:
+                    break
+            else:
+                # Single message
+                msg_tokens = self._count_tokens(messages[i].content) + 3
+                if current_tokens + msg_tokens <= target_tokens:
+                    result.insert(0, messages[i])
+                    current_tokens += msg_tokens
+                    i -= 1
+                else:
+                    break
+
+        return result
+
+    def _reconstruct_messages(
+        self, preserved: list[ChatMessage], trimmed: list[ChatMessage]
+    ) -> list[ChatMessage]:
+        """Reconstruct message list maintaining chronological order"""
+        result = []
+
+        # Add system message if present
+        if preserved and preserved[0].role == "system":
+            result.append(preserved[0])
+            preserved = preserved[1:]
+
+        # Add trimmed messages (middle part)
+        result.extend(trimmed)
+
+        # Add preserved recent messages
+        result.extend(preserved)
+
+        return result
+
+    def _trim_context_window(self) -> None:
+        """Trim messages to fit within context window"""
+        current_tokens = self._estimate_message_tokens(self.messages)
+
+        if current_tokens <= self.effective_max_tokens:
+            return
+
+        original_message_count = len(self.messages)
+
+        # Preserve system message and recent exchanges
+        preserved_messages = self._get_preserved_messages()
+        trimmable_messages = self._get_trimmable_messages(preserved_messages)
+
+        # Calculate tokens for preserved messages
+        preserved_tokens = self._estimate_message_tokens(preserved_messages)
+        available_tokens = self.effective_max_tokens - preserved_tokens
+
+        # Trim from oldest trimmable messages
+        trimmed_messages = self._trim_to_fit(trimmable_messages, available_tokens)
+
+        # Reconstruct message list
+        self.messages = self._reconstruct_messages(preserved_messages, trimmed_messages)
+
+        messages_removed = original_message_count - len(self.messages)
+        self.messages_trimmed_count += messages_removed
 
     @abstractmethod
     def _generate_response():
@@ -44,6 +199,8 @@ class LLMClient(ABC):
 
     def get_response(self, prompt: str) -> str:
         self.messages.append(ChatMessage(role="user", content=prompt))
+        # breakpoint()
+        self._trim_context_window()
         response_content = self._generate_response(self.messages)
         self.messages.append(ChatMessage(role="assistant", content=response_content))
         return response_content
@@ -91,7 +248,7 @@ class LLMClient(ABC):
         return response
 
     def get_message_len(self):
-        """Get conversation statistics"""
+        """Get conversation statistics with context info"""
         return {
             "prompt_len": sum(
                 len(item.content) for item in self.messages if item.role == "user"
@@ -99,7 +256,13 @@ class LLMClient(ABC):
             "response_len": sum(
                 len(item.content) for item in self.messages if item.role == "assistant"
             ),
-            "num_calls": len(self.messages) // 2,
+            "num_calls": len([m for m in self.messages if m.role == "user"]),
+            "estimated_tokens": self._estimate_message_tokens(self.messages),
+            "context_utilization": self._estimate_message_tokens(self.messages)
+            / self.effective_max_tokens,
+            "messages_trimmed": self.messages_trimmed_count,
+            "max_context_length": self.max_context_length,
+            "effective_max_tokens": self.effective_max_tokens,
         }
 
     def init_message(self):
@@ -118,10 +281,22 @@ class OpenAICompatClient(LLMClient):
         api_key: str = "sk_dummy",
         timeout: int = 60,
         max_retries: int = 3,
+        tokenizer: TokenizerInterface | None = None,
+        max_context_length: int = 4096,
+        context_buffer_ratio: float = 0.1,
+        preserve_recent_exchanges: int = 2,
         system_prompt: str | None = None,
         **kwargs,
     ):
-        super().__init__(model, temperature, system_prompt)
+        super().__init__(
+            model=model,
+            temperature=temperature,
+            tokenizer=tokenizer,
+            max_context_length=max_context_length,
+            context_buffer_ratio=context_buffer_ratio,
+            preserve_recent_exchanges=preserve_recent_exchanges,
+            system_prompt=system_prompt,
+        )
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key
         self.timeout = timeout
@@ -187,9 +362,20 @@ class OpenAIClient(LLMClient):
         model: str = "gpt-3.5-turbo",
         temperature: float = 1.0,
         azure: bool = False,
+        tokenizer: TokenizerInterface | None = None,
+        max_context_length: int = 4096,
+        context_buffer_ratio: float = 0.1,
+        preserve_recent_exchanges: int = 2,
         system_prompt: str | None = None,
     ):
-        super().__init__(model, temperature, system_prompt)
+        super().__init__(
+            model=model,
+            temperature=temperature,
+            tokenizer=tokenizer,
+            max_context_length=max_context_length,
+            preserve_recent_exchanges=preserve_recent_exchanges,
+            system_prompt=system_prompt,
+        )
         self.azure = azure
         self._init_client()
 
@@ -209,6 +395,15 @@ class OpenAIClient(LLMClient):
                 api_key=os.environ.get("AZURE_OPENAI_KEY"),
                 api_version=api_version,
             )
+
+    def _provider_count_tokens(self, text: str) -> int:
+        try:
+            import tiktoken
+
+            encoding = tiktoken.encoding_for_model(self.model)
+            return len(encoding.encode(text))
+        except (ImportError, KeyError):
+            return max(1, len(text) // 4)
 
     def _generate_response(self, messages: list[ChatMessage]) -> str:
         openai_messages = [
@@ -241,12 +436,24 @@ class HuggingFaceClient(LLMClient):
         self,
         model: str,
         temperature: float = 1.0,
-        device: str = "auto",
-        max_new_tokens: int = 2048,
+        tokenizer: TokenizerInterface | None = None,
+        max_context_length: int = 4096,
+        context_buffer_ratio: float = 0.1,
+        preserve_recent_exchanges: int = 2,
         system_prompt: str | None = None,
+        max_new_tokens: int = 2048,
+        device: str = "auto",
         **kwargs,
     ):
-        super().__init__(model, temperature, system_prompt)
+        super().__init__(
+            model=model,
+            temperature=temperature,
+            tokenizer=tokenizer,
+            max_context_length=max_context_length,
+            context_buffer_ratio=context_buffer_ratio,
+            preserve_recent_exchanges=preserve_recent_exchanges,
+            system_prompt=system_prompt,
+        )
         self.device = device
         self.max_new_tokens = max_new_tokens
         self.kwargs = kwargs
@@ -264,6 +471,12 @@ class HuggingFaceClient(LLMClient):
 
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
+
+    def _provider_count_tokens(self, text: str) -> int:
+        if hasattr(self, "tokenizer") and self.tokenizer:
+            tokens = self.tokenizer.encode(text, add_special_token=False)
+            return len(tokens)
+        return max(1, len(text) // 4)
 
     def _generate_response(self, messages: list[ChatMessage]) -> str:
         """Generate response using Hugging Face model"""
@@ -307,14 +520,26 @@ class HuggingFaceClient(LLMClient):
 class LlamaClient(LLMClient):
     def __init__(
         self,
-        model_path: str,
+        model_path: str,  # path to GGUF file
+        model_name: str,  # model's ID on HuggingFace
         temperature: float = 1.0,
+        tokenizer: TokenizerInterface | None = None,
         n_ctx: int = 4096,
+        context_buffer_ratio: float = 0.1,
+        preserve_recent_exchanges: int = 2,
         n_gpu_layers=0,
         system_prompt: str | None = None,
         **kwargs,
     ):
-        super().__init__(model_path, temperature, system_prompt)
+        super().__init__(
+            model=model_name,
+            temperature=temperature,
+            tokenizer=tokenizer,
+            max_context_length=n_ctx,
+            context_buffer_ratio=context_buffer_ratio,
+            preserve_recent_exchanges=preserve_recent_exchanges,
+            system_prompt=system_prompt,
+        )
         self.model_path = model_path
         self.n_ctx = n_ctx
         self.n_gpu_layers = n_gpu_layers
@@ -355,7 +580,7 @@ class LLMClientFactory:
     """Factory for creating llm clients"""
 
     @staticmethod
-    def __init__(client_type: str, **kwargs) -> LLMClient:
+    def create_client(client_type: str, **kwargs) -> LLMClient:
         client_type = client_type.lower()
 
         if client_type in ["openai", "azure"]:

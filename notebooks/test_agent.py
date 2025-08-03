@@ -19,7 +19,7 @@ def _():
     from llm_client import LlamaClient, OpenAIClient, create_ollama_client
     from agent import Agent
 
-    return Agent, DatabaseManager, OpenAIClient, mo
+    return DatabaseManager, OpenAIClient, mo
 
 
 @app.cell(hide_code=True)
@@ -45,7 +45,7 @@ def _(baseball_db, mo):
         f"""
         SELECT name FROM sqlite_master WHERE type='table';
         """,
-        engine=baseball_db,
+        engine=baseball_db
     )
     return
 
@@ -79,9 +79,39 @@ def _():
     base_prompt = ""
     with open("data/baseball_1_base_prompt.txt", "r") as f:
         base_prompt = f.read()
-
+    print(f"Question: {question}\n")
     print_wrapped(base_prompt, wrap_length=120)
     return base_prompt, pprint, question
+
+
+@app.cell
+def _(baseball_db, mo):
+    _df = mo.sql(
+        f"""
+        SELECT DISTINCT tsn.id_sân_vận_động, d.id_đội, c.id_cầu_thủ, c.họ || ' ' || c.tên AS họ_tên 
+        FROM cầu_thủ AS c
+        JOIN lần_xuất_hiện as lxh ON c.id_cầu_thủ = lxh.id_cầu_thủ
+        JOIN đội as d ON lxh.id_đội = d.id_đội
+        JOIN trận_đấu_sân_nhà   AS tsn ON tsn.id_đội    = d.id_đội
+        JOIN sân_vận_động       AS svd ON svd.id_sân_vận_động = tsn.id_sân_vận_động
+
+
+
+        """,
+        engine=baseball_db
+    )
+    return
+
+
+@app.cell
+def _(baseball_db, mo):
+    _df = mo.sql(
+        f"""
+        SELECT * FROM sân_vận_động
+        """,
+        engine=baseball_db
+    )
+    return
 
 
 @app.cell(hide_code=True)
@@ -101,7 +131,7 @@ def _(DatabaseManager, baseball_db_path):
     )
 
     print(dbman.format_query_result(result))
-    return (dbman,)
+    return
 
 
 @app.cell
@@ -137,7 +167,11 @@ def _(OpenAIClient):
     #    system_prompt=system_prompt,
     # )
 
-    client = OpenAIClient(model="o3-2025-04-16", system_prompt=system_prompt)
+    client = OpenAIClient(
+        model="o3-2025-04-16", 
+        max_context_length=200_000,
+        system_prompt=system_prompt,
+    )
 
     response = client.get_model_response(
         prompt="""
@@ -164,17 +198,19 @@ def _(OpenAIClient):
     return (client,)
 
 
-@app.cell
-def _(Agent, client, dbman):
-    agent = Agent(
-        db_path="data",
-        db_id="baseball_1.sqlite",
+app._unparsable_cell(
+    r"""
+        agent = Agent(
+        db_path=\"data\",
+        db_id=\"baseball_1.sqlite\",
         db_manager=dbman,
         client=client,
     )
 
     agent.health_check()
-    return (agent,)
+    """,
+    name="_"
+)
 
 
 @app.cell(hide_code=True)

@@ -1,4 +1,3 @@
-import os
 from bitarray import bitarray
 
 import pandas as pd
@@ -30,14 +29,17 @@ from result_validation import (
 class Agent:
     def __init__(
         self,
-        db_path: str,
-        db_id: str,
+        db_path: str,  # path to database folder
+        db_id: str,  # the name of the database file, without .sqlite :-)
         db_manager: DatabaseManager,
         client: LLMClient,
+        max_try: int = 3,
+        max_iter: int = 10,
+        early_stop: int = 4,
     ):
         self.max_try = 3
         self.max_iter = 10
-        self.early_stop = True
+        self.early_stop = 4
         self.sqlite_path = get_sqlite_path(db_path, db_id)
 
         self.db_manager = db_manager
@@ -49,11 +51,15 @@ class Agent:
         base_prompt,
     ):
         self_refine_prompt = initial_prompt.format(
-            base_prompt=base_prompt, db_type="sqlite"
+            question=question,
+            base_prompt=base_prompt,
+            db_type="sqlite",
         )
 
         iter = 0
         error_rec = bitarray()
+        empty_rec = bitarray()
+
         consistency_state = ConsistencyState.create_empty()
 
         final_sql = None
@@ -61,7 +67,7 @@ class Agent:
 
         while iter < self.max_iter:
             response_sql = None
-            max_try = 3
+            max_try = self.max_try
             while max_try > 0:
                 response = self.llm.get_model_response(self_refine_prompt, "sql")
 
@@ -77,7 +83,7 @@ class Agent:
                 break
 
             print(f"Try to run SQL in self-refine - Iteration {iter + 1}")
-            print(f"SQL: {response_sql}")
+            print(f"SQL:\n{response_sql}")
 
             executed_result = self.db_manager.exec_query_sqlite(
                 response_sql,
@@ -86,19 +92,28 @@ class Agent:
             )
 
             if not executed_result.success:
-                error_rec.append(0)
-            else:
                 error_rec.append(1)
+                empty_rec.append(0)
+            elif executed_result.rows_affected == 0:
+                error_rec.append(0)
+                empty_rec.append(1)
+            else:
+                error_rec.append(0)
+                empty_rec.append(0)
 
             # Early stop check for repeating failure
-            if len(error_rec) > 3:
-                last_four = error_rec[:-4]
-                if not any(last_four):  # all bits are zeros
+            if len(error_rec) > self.early_stop:
+                last_four_errors = error_rec[:-4]
+                last_four_empty = empty_rec[:-4]
+                if all(last_four_errors):  # all bits are 1
+                    print("Repetitive execution failure, stopping")
+                    break
+                elif all(last_four_empty):
                     print("Repetitive empty result, stopping")
                     break
 
             # Handle successful execution
-            if executed_result is not None and executed_result.success:
+            if executed_result.success and executed_result.rows_affected != 0:
                 # Compressed query result for more efficient processing
                 compressed_data = seripress_df(executed_result.data)
 
@@ -132,40 +147,51 @@ class Agent:
                     SQLError.UNKNOWN_ERROR,
                 ]
 
-                if not executed_result:
-                    print("No query result returned, something went horribly wrong")
-                    print("Exiting self-refine process")
-                    break
-
                 if executed_result.error_type in unrecoverable_errors:
                     raise RuntimeError(
                         f"Unrecoverable database error: {executed_result.error_type} - {executed_result.error_message}"
                     )
 
-                self_refine_prompt = correction_prompt.format(
-                    sql=response_sql,
-                    error_type=executed_result.error_type,
-                    error_msg=executed_result.error_message,
-                )
+                if executed_result.rows_affected == 0:
+                    self_refine_prompt = correction_prompt.format(
+                        sql=response_sql,
+                        error_type="empty_result",
+                        error_msg=(
+                            "No row returned from query, try relaxing the filters and see if it works. "
+                            "e.g. remove LIMIT, soften WHERE clauses"
+                        ),
+                    )
+
+                else:
+                    self_refine_prompt = correction_prompt.format(
+                        sql=response_sql,
+                        error_type=executed_result.error_type,
+                        error_msg=executed_result.error_message,
+                    )
 
             iter += 1
 
         # Print statistics
         print(f"Total iterations: {iter}")
+
         if len(error_rec) > 0:
-            success_count = error_rec.count(1)
-            failure_count = error_rec.count(0)
+            error_count = error_rec.count(1)
+            empty_count = error_rec.count(1)
+            successful = (~error_rec & ~empty_rec).count()
 
             print(
-                f"Execution statistics: {success_count} successes, {failure_count} failures"
+                f"Execution statistics: {successful} successes, {error_count} failures, {empty_count} empty results"
             )
-            print(f"Success rate: {success_count / len(error_rec) * 100:.1f}%")
+            print(f"Success rate: {successful / len(error_rec) * 100:.1f}%")
             print(
                 "Error pattern (last 10): "
                 f"{error_rec[-10:].to01() if len(error_rec) >= 10 else error_rec.to01()}"
             )
+            print(
+                "Empty pattern (last 10): "
+                f"{empty_rec[-10:].to01() if len(empty_rec) >= 10 else empty_rec.to01()}"
+            )
 
-        # If success = False then refinement failed not error,
         # notify user and log status
         success = iter < self.max_iter and final_result is not None
 
@@ -216,7 +242,7 @@ class Agent:
                     print("✗ LLM: FAILED - API connection failed")
             else:
                 response = self.llm.get_model_response("write a dummy sql query", "sql")
-                print(f"✓ LLM: {'OK' if response else 'FAILED: ' + response[0]}")
+                print(f"✓ LLM: {'OK' if response else 'FAILED'}")
         except Exception as e:
             print(f"✗ LLM: FAILED - {e}")
 
