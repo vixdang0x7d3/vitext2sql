@@ -60,13 +60,13 @@ class LLMClient(ABC):
                 response = self.get_response(prompt)
             except Exception as e:
                 print(f"max_try: {max_try}, exception: {e}")
+
             code_blocks = extract_all_blocks(response, code_format)
 
         if max_try == 0 or code_blocks == []:
-            print(
-                f"get_model_response() exit, max_try: {max_try}, code_block: {code_blocks}"
+            raise RuntimeError(
+                f"Failed to get valid response after retries. max_try: {max_try}, code_block: {code_blocks}"
             )
-            sys.exit(0)
 
         return code_blocks
 
@@ -84,8 +84,9 @@ class LLMClient(ABC):
             break
 
         if max_try == 0:
-            print(f"get_model_response_txt() exit, max_try: {max_try}")
-            sys.exit(0)
+            raise RuntimeError(
+                f"Failed to get text response after retries. max_try: {max_try}"
+            )
 
         return response
 
@@ -224,6 +225,15 @@ class OpenAIClient(LLMClient):
                 model=self.model, messages=openai_messages, temperature=self.temperature
             )
             return response.choices[0].message.content
+
+    def health_check(self) -> bool:
+        """Check if the OpenAI client is healthy"""
+        try:
+            # Test with a simple models list call
+            self.client.models.list()
+            return True
+        except Exception:
+            return False
 
 
 class HuggingFaceClient(LLMClient):

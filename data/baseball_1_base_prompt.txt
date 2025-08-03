@@ -1,0 +1,188 @@
+Table full name: cầu_thủ
+Is referenced by:
+    bình_chọn_giải_thưởng_dành_cho_cầu_thủ.id_cầu_thủ
+    giải_thưởng_dành_cho_huấn_luyện_viên.id_cầu_thủ
+    giải_thưởng_dành_cho_cầu_thủ.id_cầu_thủ
+    giải_đấu_của_tất_cả_các_ngôi_sao.id_cầu_thủ
+    cầu_thủ_của_trường_đại_học.id_cầu_thủ
+    thành_tích_đánh_bóng.id_cầu_thủ
+    thành_tích_phòng_ngự.id_cầu_thủ
+    thành_tích_phòng_ngự_sân_ngoài.id_cầu_thủ
+    đại_lộ_danh_vọng.id_cầu_thủ
+    thành_tích_đánh_bóng_sau_mùa_giải.id_cầu_thủ
+    thành_tích_phòng_ngự_sau_mùa_giải.id_cầu_thủ
+    lần_xuất_hiện.id_cầu_thủ
+Column name: tên Type: TEXT
+Column name: họ Type: TEXT
+Sample rows:
+[{'tên': 'An', 'họ': 'Nguyễn'}, {'tên': 'Bình', 'họ': 'Trần'}, {'tên': 'Cường', 'họ': 'Lê'}]
+--------------------------------------------------
+Table full name: giải_thưởng_dành_cho_cầu_thủ
+Foreign keys:
+    id_cầu_thủ → cầu_thủ.id_cầu_thủ
+Column name: id_cầu_thủ Type: TEXT
+Column name: id_giải_thưởng Type: TEXT
+Column name: năm Type: INTEGER
+Column name: id_giải_đấu Type: TEXT
+Sample rows:
+[{'id_cầu_thủ': 'P001', 'id_giải_thưởng': 'MVP', 'năm': 2024, 'id_giải_đấu': 'L001'}, {'id_cầu_thủ': 'P002', 'id_giải_thưởng': 'GoldenBat', 'năm': 2024, 'id_giải_đấu': 'L001'}, {'id_cầu_thủ': 'P003', 'id_giải_thưởng': 'SilverGlove', 'năm': 2024, 'id_giải_đấu': 'L001'}]
+--------------------------------------------------
+Table full name: giải_đấu_của_tất_cả_các_ngôi_sao
+Foreign keys:
+    id_cầu_thủ → cầu_thủ.id_cầu_thủ
+Column name: id_cầu_thủ Type: TEXT
+Column name: năm Type: INTEGER
+Column name: id_đội Type: TEXT
+Sample rows:
+[{'id_cầu_thủ': 'P001', 'năm': 2024, 'id_đội': 'T001'}, {'id_cầu_thủ': 'P002', 'năm': 2024, 'id_đội': 'T002'}, {'id_cầu_thủ': 'P003', 'năm': 2024, 'id_đội': 'T003'}]
+--------------------------------------------------
+Table full name: lần_xuất_hiện
+Foreign keys:
+    id_cầu_thủ → cầu_thủ.id_cầu_thủ
+    id_đội → đội.id_đội
+Column name: năm Type: INTEGER
+Column name: id_đội Type: TEXT
+Column name: id_giải_đấu Type: TEXT
+Column name: id_cầu_thủ Type: TEXT
+Sample rows:
+[{'năm': 2024, 'id_đội': 'T001', 'id_giải_đấu': 'L001', 'id_cầu_thủ': 'P001'}, {'năm': 2024, 'id_đội': 'T002', 'id_giải_đấu': 'L001', 'id_cầu_thủ': 'P002'}, {'năm': 2024, 'id_đội': 'T003', 'id_giải_đấu': 'L001', 'id_cầu_thủ': 'P003'}]
+--------------------------------------------------
+Table full name: sân_vận_động
+Is referenced by:
+    trận_đấu_sân_nhà.id_sân_vận_động
+Column name: id_sân_vận_động Type: TEXT
+Column name: tên_sân_vận_động Type: TEXT
+Column name: thành_phố Type: TEXT
+Column name: tiểu_bang Type: TEXT
+Column name: quốc_gia Type: TEXT
+Sample rows:
+[{'id_sân_vận_động': 'S001', 'tên_sân_vận_động': 'Sân Rồng', 'thành_phố': 'Hà Nội', 'tiểu_bang': 'HN', 'quốc_gia': 'Việt Nam'}, {'id_sân_vận_động': 'S002', 'tên_sân_vận_động': 'Sân Sư Tử', 'thành_phố': 'TP.HCM', 'tiểu_bang': 'HCM', 'quốc_gia': 'Việt Nam'}, {'id_sân_vận_động': 'S003', 'tên_sân_vận_động': 'Sân Hổ', 'thành_phố': 'Đà Nẵng', 'tiểu_bang': 'DN', 'quốc_gia': 'Việt Nam'}]
+--------------------------------------------------
+Table full name: thành_tích_huấn_luyện_viên
+Foreign keys:
+    id_đội → đội.id_đội
+Column name: id_cầu_thủ Type: TEXT
+Column name: id_đội Type: TEXT
+Column name: id_giải_đấu Type: TEXT
+Column name: g Type: INTEGER
+Column name: w Type: INTEGER
+Column name: l Type: INTEGER
+Column name: thứ_hạng Type: INTEGER
+Sample rows:
+[{'id_cầu_thủ': 'P001', 'id_đội': 'T001', 'id_giải_đấu': 'L001', 'w': 90, 'thứ_hạng': 1}, {'id_cầu_thủ': 'P002', 'id_đội': 'T002', 'id_giải_đấu': 'L001', 'w': 90, 'thứ_hạng': 2}, {'id_cầu_thủ': 'P003', 'id_đội': 'T003', 'id_giải_đấu': 'L001', 'w': 90, 'thứ_hạng': 3}]
+--------------------------------------------------
+Table full name: thành_tích_huấn_luyện_viên_theo_hiệp
+Foreign keys:
+    id_đội → đội.id_đội
+Column name: id_cầu_thủ Type: TEXT
+Column name: id_đội Type: TEXT
+Column name: id_giải_đấu Type: TEXT
+Column name: g Type: INTEGER
+Column name: w Type: INTEGER
+Column name: l Type: INTEGER
+Sample rows:
+[{'id_cầu_thủ': 'P001', 'id_đội': 'T001', 'id_giải_đấu': 'L001', 'w': 12}, {'id_cầu_thủ': 'P002', 'id_đội': 'T002', 'id_giải_đấu': 'L001', 'w': 12}, {'id_cầu_thủ': 'P003', 'id_đội': 'T003', 'id_giải_đấu': 'L001', 'w': 12}]
+--------------------------------------------------
+Table full name: thành_tích_ném_bóng
+Column name: id_cầu_thủ Type: TEXT
+Column name: năm Type: INTEGER
+Column name: id_đội Type: TEXT
+Column name: id_giải_đấu Type: TEXT
+Column name: w Type: INTEGER
+Column name: g Type: INTEGER
+Column name: h Type: INTEGER
+Sample rows:
+[{'id_cầu_thủ': 'P001', 'năm': 2024, 'id_đội': 'T001', 'id_giải_đấu': 'L001', 'w': 10}, {'id_cầu_thủ': 'P002', 'năm': 2024, 'id_đội': 'T002', 'id_giải_đấu': 'L001', 'w': 10}, {'id_cầu_thủ': 'P003', 'năm': 2024, 'id_đội': 'T003', 'id_giải_đấu': 'L001', 'w': 10}]
+--------------------------------------------------
+Table full name: thành_tích_phòng_ngự
+Foreign keys:
+    id_cầu_thủ → cầu_thủ.id_cầu_thủ
+Column name: id_cầu_thủ Type: TEXT
+Column name: id_đội Type: TEXT
+Column name: id_giải_đấu Type: TEXT
+Column name: g Type: INTEGER
+Sample rows:
+[{'id_cầu_thủ': 'P001', 'id_đội': 'T001', 'id_giải_đấu': 'L001'}, {'id_cầu_thủ': 'P002', 'id_đội': 'T002', 'id_giải_đấu': 'L001'}, {'id_cầu_thủ': 'P003', 'id_đội': 'T003', 'id_giải_đấu': 'L001'}]
+--------------------------------------------------
+Table full name: thành_tích_đánh_bóng
+Foreign keys:
+    id_cầu_thủ → cầu_thủ.id_cầu_thủ
+Column name: id_cầu_thủ Type: TEXT
+Column name: id_đội Type: TEXT
+Column name: id_giải_đấu Type: TEXT
+Column name: g Type: INTEGER
+Column name: h Type: INTEGER
+Sample rows:
+[{'id_cầu_thủ': 'P001', 'id_đội': 'T001', 'id_giải_đấu': 'L001'}, {'id_cầu_thủ': 'P002', 'id_đội': 'T002', 'id_giải_đấu': 'L001'}, {'id_cầu_thủ': 'P003', 'id_đội': 'T003', 'id_giải_đấu': 'L001'}]
+--------------------------------------------------
+Table full name: thành_tích_đánh_bóng_sau_mùa_giải
+Foreign keys:
+    id_đội → đội.id_đội
+    id_cầu_thủ → cầu_thủ.id_cầu_thủ
+Column name: id_cầu_thủ Type: TEXT
+Column name: id_đội Type: TEXT
+Column name: g Type: INTEGER
+Column name: h Type: INTEGER
+Sample rows:
+[{'id_cầu_thủ': 'P001', 'id_đội': 'T001'}, {'id_cầu_thủ': 'P001', 'id_đội': 'T002'}, {'id_cầu_thủ': 'P001', 'id_đội': 'T003'}, {'id_cầu_thủ': 'P002', 'id_đội': 'T001'}, {'id_cầu_thủ': 'P002', 'id_đội': 'T002'}]
+--------------------------------------------------
+Table full name: trận_đấu_sân_nhà
+Foreign keys:
+    id_sân_vận_động → sân_vận_động.id_sân_vận_động
+    id_đội → đội.id_đội
+Column name: id_đội Type: TEXT
+Column name: id_sân_vận_động Type: TEXT
+Sample rows:
+[{'id_đội': 'T001', 'id_sân_vận_động': 'S001'}, {'id_đội': 'T002', 'id_sân_vận_động': 'S002'}, {'id_đội': 'T003', 'id_sân_vận_động': 'S003'}]
+--------------------------------------------------
+Table full name: đội
+Is referenced by:
+    thành_tích_huấn_luyện_viên.id_đội
+    thành_tích_huấn_luyện_viên_theo_hiệp.id_đội
+    trận_đấu_sân_nhà.id_đội
+    thành_tích_đánh_bóng_sau_mùa_giải.id_đội
+    lần_xuất_hiện.id_đội
+Column name: id_đội Type: TEXT
+Column name: g Type: INTEGER
+Column name: w Type: INTEGER
+Column name: l Type: INTEGER
+Column name: thắng_ở_world_series_hay_không Type: TEXT
+Column name: r Type: INTEGER
+Column name: h Type: INTEGER
+Column name: er Type: INTEGER
+Column name: ha Type: INTEGER
+Column name: e Type: INTEGER
+Column name: tên Type: TEXT
+Column name: sân_vận_động Type: TEXT
+Sample rows:
+[{'id_đội': 'T001', 'thắng_ở_world_series_hay_không': 'Không', 'tên': 'Rồng Đỏ', 'sân_vận_động': 'S001'}, {'id_đội': 'T002', 'thắng_ở_world_series_hay_không': 'Không', 'tên': 'Sư Tử Vàng', 'sân_vận_động': 'S002'}, {'id_đội': 'T003', 'thắng_ở_world_series_hay_không': 'Không', 'tên': 'Hổ Xanh', 'sân_vận_động': 'S003'}]
+--------------------------------------------------
+External knowledge that might be helpful: 
+
+**Relevant DB description Concepts:**
+1. - tên gọi khác của sân vận động (tên_gọi_khác_của_sân_vận_động): tên gọi khác của sân vận động
+- thành phố (thành_phố): thành phố nơi sân tọa lạc
+- tiểu bang (tiểu_bang): tiểu bang nơi sân tọa lạc
+2. - sân vận động (sân_vận_động): tên sân vận động
+- số lượng dự khán (số_lượng_dự_khán): số lượng khán giả tham dự
+- chỉ số ảnh hưởng sân nhà đến đánh bóng (bpf): batting park factor – chỉ số ảnh hưởng sân nhà đến đánh bóng
+3. - số bóng catcher để lọt qua (pb): số bóng catcher để lọt qua
+- số lần ném bóng hỏng (wp): wild pitches – số lần ném bóng hỏng
+- số lần đối thủ cướp base thành công (sb): số lần đối thủ cướp base thành công
+4. - thắng ở giải vô địch thế giới hay không (thắng_ở_giải_vô_địch_thế_giới_hay_không): đội có thắng world series hay không
+- thắng ở giải bóng chày hay không (thắng_ở_giải_bóng_chày_hay_không): đội có thắng giải bóng chày hay không
+- thắng ở world series hay không (thắng_ở_world_series_hay_không): đội có thắng world series hay không
+
+**Similar SQL Examples:**
+1. Question: cho biết tên họ và id của cầu thủ có số lần tham dự giải đấu của tất cả các ngôi sao nhiều nhất liệt kê số lần tham dự của cầu thủ này
+   SQL: select t1.tên , t1.họ , t1.id_cầu_thủ , count ( * ) from cầu_thủ as t1 join giải_đấu_của_tất_cả_các_ngôi_sao as t2 on t1.id cầu_thủ = t2.id_cầu_thủ group by t1.id_cầu_thủ order by count ( * ) desc limit 1
+   Database: baseball_1
+2. Question: cầu thủ nào có nhiều kinh nghiệm tham dự giải đấu của tất cả các ngôi sao nhất hãy cho biết tên họ và id cũng như số lần tham dự của cầu thủ này
+   SQL: select t1.tên , t1.họ , t1.id_cầu_thủ , count ( * ) from cầu_thủ as t1 join giải_đấu_của_tất_cả_các_ngôi sao as t2 on t1.id_cầu_thủ = t2.id_cầu_thủ group by t1.id_cầu_thủ order by count ( * ) desc limit 1
+   Database: baseball_1
+3. Question: cho biết tên của tất cả những cầu thủ đã được nhận trong quá trình thử sức và tên của các trường đại học mà họ đang theo học
+   SQL: select t1.tên_cầu_thủ , t2.tên_trường_đại_học from cầu_thủ as t1 join buổi_thử_sức as t2 on t1.id_cầu_thủ = t2.id_cầu_thủ where t2.quyết_định = "yes"
+   Database: soccer_2
+4. Question: cho biết các vị trí khác nhau mà các cầu thủ đã đảm nhận trong buổi thử sức
+   SQL: select count ( distinct vị_trí_cầu_thủ ) from buổi_thử_sức
+   Database: soccer_2

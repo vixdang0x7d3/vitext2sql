@@ -3,7 +3,11 @@ from bitarray import bitarray
 
 import pandas as pd
 
-from database_manager import DatabaseManager
+from database_manager import (
+    DatabaseManager,
+    SQLError,
+)
+
 from llm_client import LLMClient
 
 from utils import (
@@ -43,11 +47,9 @@ class Agent:
         self,
         question,
         base_prompt,
-        csv_save_path,
-        sql_save_path,
     ):
         self_refine_prompt = initial_prompt.format(
-            base_prompt=base_prompt,
+            base_prompt=base_prompt, db_type="sqlite"
         )
 
         iter = 0
@@ -78,7 +80,7 @@ class Agent:
             print(f"SQL: {response_sql}")
 
             executed_result = self.db_manager.exec_query_sqlite(
-                response,
+                response_sql,
                 self.sqlite_path,
                 save_path=None,
             )
@@ -92,15 +94,13 @@ class Agent:
             if len(error_rec) > 3:
                 last_four = error_rec[:-4]
                 if not any(last_four):  # all bits are zeros
-                    if os.path.exists(csv_save_path):
-                        os.remove(csv_save_path)
                     print("Repetitive empty result, stopping")
                     break
 
             # Handle successful execution
             if executed_result is not None and executed_result.success:
                 # Compressed query result for more efficient processing
-                compressed_data = seripress_df(executed_result)
+                compressed_data = seripress_df(executed_result.data)
 
                 # Validate result consistency,
                 # construct response prompt based on validation result
@@ -123,16 +123,29 @@ class Agent:
                 if updated_prompt:
                     self_refine_prompt = updated_prompt
             else:
-                # Handle execution error
-                error_message = (
-                    executed_result.error_message
-                    if executed_result
-                    else "Unknown execution error"
-                )
+                unrecoverable_errors = [
+                    SQLError.DATABASE_LOCKED,
+                    SQLError.PERMISSION_DENIED,
+                    SQLError.CONNECTION_ERROR,
+                    SQLError.EXECUTION_ERROR,
+                    SQLError.SAVE_WARNING,
+                    SQLError.UNKNOWN_ERROR,
+                ]
+
+                if not executed_result:
+                    print("No query result returned, something went horribly wrong")
+                    print("Exiting self-refine process")
+                    break
+
+                if executed_result.error_type in unrecoverable_errors:
+                    raise RuntimeError(
+                        f"Unrecoverable database error: {executed_result.error_type} - {executed_result.error_message}"
+                    )
 
                 self_refine_prompt = correction_prompt.format(
                     sql=response_sql,
-                    error=error_message,
+                    error_type=executed_result.error_type,
+                    error_msg=executed_result.error_message,
                 )
 
             iter += 1
@@ -152,6 +165,8 @@ class Agent:
                 f"{error_rec[-10:].to01() if len(error_rec) >= 10 else error_rec.to01()}"
             )
 
+        # If success = False then refinement failed not error,
+        # notify user and log status
         success = iter < self.max_iter and final_result is not None
 
         return success, final_result, final_sql
@@ -175,3 +190,45 @@ class Agent:
         # Save SQL
         with open(sql_path, "w") as f:
             f.write(sql_query)
+
+    def health_check(self):
+        """Simple health check for the text2sql agent"""
+        print("=== Health Check ===")
+
+        # Test database
+        try:
+            result = self.db_manager.exec_query_sqlite(
+                "SELECT 1", self.sqlite_path, save_path=None
+            )
+            print(
+                f"✓ Database: {'OK' if result.success else 'FAILED: ' + result.error_message}"
+            )
+        except Exception as e:
+            print(f"✗ Database: FAILED - {e}")
+
+        # Test LLM
+        try:
+            # Check API key for OpenAI clients
+            if hasattr(self.llm, "health_check"):
+                if self.llm.health_check():
+                    print("✓ LLM: OK")
+                else:
+                    print("✗ LLM: FAILED - API connection failed")
+            else:
+                response = self.llm.get_model_response("write a dummy sql query", "sql")
+                print(f"✓ LLM: {'OK' if response else 'FAILED: ' + response[0]}")
+        except Exception as e:
+            print(f"✗ LLM: FAILED - {e}")
+
+        # Test schema
+        try:
+            tables = self.db_manager.exec_query_sqlite(
+                "SELECT name FROM sqlite_master WHERE type='table'",
+                self.sqlite_path,
+                save_path=None,
+            )
+            print(
+                f"✓ Schema: {'OK' if tables.success else 'FAILED: ' + result.error_message}"
+            )
+        except Exception as e:
+            print(f"✗ Schema: FAILED - {e}")

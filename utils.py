@@ -39,7 +39,7 @@ def split_sql(sql_s: str) -> list[str]:
 
 def get_sqlite_path(db_folder: str, db_id: str):
     db_id = db_id.lower().replace("-", "_")
-    return f"{db_folder}/{db_id}.sqlite"
+    return f"{db_folder}/{db_id}"
 
 
 def seripress_df(df, name="df"):
@@ -98,5 +98,5 @@ def hard_cut(
     return str_e
 
 
-def get_values_from_table(csv_data_str):
-    return "\n".join(csv_data_str.split("\n")[1:])
+def get_values_from_table(df):
+    return "\n".join(df.to_csv(index=False).split("\n")[1:])

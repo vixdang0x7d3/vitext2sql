@@ -9,6 +9,7 @@ from enum import Enum
 class SQLError(Enum):
     """Simple enum for SQL error types"""
 
+    # self-refine handled errors
     SYNTAX_ERROR = "syntax_error"
     TABLE_NOT_FOUND = "table_not_found"
     COLUMN_NOT_FOUND = "column_not_found"
@@ -16,10 +17,12 @@ class SQLError(Enum):
     TYPE_MISMATCH = "type_mismatch"
     FOREIGN_KEY_CONSTRAINT = "foreign_key_constraint"
     UNIQUE_CONSTRAINT = "unique_constraint"
+    TIMEOUT_ERROR = "timeout_error"
+
+    # unrecoverable errors
     DATABASE_LOCKED = "database_locked"
     PERMISSION_DENIED = "permission_denied"
     CONNECTION_ERROR = "connection_error"
-    TIMEOUT_ERROR = "timeout_error"
     EXECUTION_ERROR = "execution_error"
     SAVE_WARNING = "save_warning"
     UNKNOWN_ERROR = "unknown_error"
@@ -72,7 +75,7 @@ class DatabaseManager:
             except Exception as e:
                 print(f"Failed when closing for db {key}: {e}")
 
-    def _categorie_sql_error(self, error: Exception) -> str:
+    def _categorize_sql_error(self, error: Exception) -> str:
         """
         Categorize SQL errors for building better prompt at caller level
         """
@@ -216,71 +219,70 @@ class DatabaseManager:
                 error_message=f"Unexpected error during query execution: {str(e)}",
             )
 
-    def get_schema(
-        self,
-        sqlite_path: str,
-        add_sample_rows: bool = False,
-        add_description: bool = False,
-    ) -> tuple[list[str], list[dict]] | None:
+    def format_query_result(
+        self, result: QueryResult, max_rows: int = 20, max_col_width: int = 50
+    ) -> str:
         """
-        Extract and return a list of table informations for a given sqlite database
+        Format query result into a human-readable string
 
         Parameters:
-        sqlite_path: str
-            Path to the target database
-        add_sample_rows: bool
-            Option to add sample rows to the table information
-        add_description: bool
-            Option to include description
+        result: QueryResult
+            The result object from query execution
+        max_rows: int
+            Maximum number of rows to display
+        max_col_width: int
+            Maximum width for each column
+
+        Returns:
+        str
+            Formatted string representation of the query result
         """
 
-        fetch_ddls = "SELECT name, sql FROM sqlite_master WHERE type='table'"
-        fetch_table_info = "PRAGMA table_info({})"
+        if not result.success:
+            return f"""
+Query Failed:
+{"-" * 50}
+Query: {result.query}
+Error Type: {result.error_type}
+Error Message: {result.error_message}
+"""
 
-        conn = self.conns[sqlite_path]
-        cursor = conn.cursor()
-        cursor.execute(fetch_ddls)
-        tables = cursor.fetchall()
+        if result.data is None or result.data.empty:
+            return f"""
+Query Result:
+{"-" * 50}
+Query: {result.query}
+Status: Success (No data returned)
+Rows Affected: {result.rows_affected or 0}
+"""
 
-        table_names = [table[0] for table in tables]
+        data = result.data
+        total_rows = len(data)
 
-        table_schemas = []
-        for table in tables:
-            table_schema = {}
+        # Create header
+        output = f"""
+Query Result:
+{"-" * 50}
+Query: {result.query}
+Total Rows: {total_rows:,}
+Columns: {len(data.columns)}
+Showing: {min(max_rows, total_rows)} rows
+{"-" * 50}
+"""
 
-            # store table name
-            table_name = table[0]
-            table_schema["table_fullname"] = table_name
+        # Add formatted data
+        display_data = data.head(max_rows)
+        formatted_table = display_data.to_string(
+            max_cols=None, max_colwidth=max_col_width, index=True, na_rep="NULL"
+        )
 
-            # extract column info
-            cursor.execute(fetch_table_info.format(table_name))
-            column_info = cursor.fetchall()
+        output += formatted_table
 
-            column_names = []
-            column_types = []
+        # Add truncation notice if needed
+        if total_rows > max_rows:
+            output += f"\n\n... ({total_rows - max_rows:,} more rows truncated)"
 
-            for col in column_info:
-                # cid|name|type|notnull|dflt_value|pk
-                column_names.append(col[1])
-                column_types.append(col[2])
-
-            table_schema["column_names"] = column_names
-            table_schema["column_types"] = column_types
-
-            if not table_schema["column_names"]:
-                print(f"WARN: table {table_name} - no column")
-
-            # extract sample values
-            sample_rows = []
-            if add_sample_rows:
-                sampling_query = f"SELECT * FROM {table_name} LIMIT 3"
-                cursor.execute(sampling_query)
-                sample_rows = cursor.fetchall()
-
-            table_schema["sample_rows"] = str(sample_rows)
-            table_schemas.append(table_schema)
-
-        return table_names, table_schemas
+        return output
 
     def validate_query_syntax(self, query: str, sqlite_path: str) -> QueryResult:
         """
@@ -308,7 +310,7 @@ class DatabaseManager:
         except Exception as e:
             return QueryResult(
                 success=False,
-                error_type=self._categorie_sql_error(e),
+                error_type=self._categorize_sql_error(e),
                 error_message=str(e),
                 query=query,
             )

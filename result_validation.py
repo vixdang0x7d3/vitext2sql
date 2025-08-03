@@ -29,7 +29,7 @@ class ConsistencyState:
 
     @classmethod
     def create_empty(cls) -> "ConsistencyState":
-        return cls(result_values=[], results_tables=[])
+        return cls(results_values=[], results_tables=[])
 
 
 def find_nested_values(df: pd.DataFrame) -> list[str]:
