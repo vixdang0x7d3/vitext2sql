@@ -18,6 +18,6 @@ wheels/
 __marimo__/*.html
 
 # Data and model weights
-models/
-pre/db/*
-pre/sql_ex_collection/*
+data/
+pre/db/
+pre/sql_ex_collection/
