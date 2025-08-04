@@ -1,0 +1,3 @@
+- thành phố nơi mất (thành_phố_nơi_mất): thành phố nơi cầu thủ mất (nếu có)
+- tên (tên): tên của cầu thủ
+- họ (họ): họ của cầu thủ

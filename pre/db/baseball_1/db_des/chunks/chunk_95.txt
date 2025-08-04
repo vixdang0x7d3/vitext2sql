@@ -1,0 +1,3 @@
+- lỗi di chuyển của pitcher (bk): lỗi di chuyển của pitcher
+- tổng số batter đối đầu (bfp): tổng số batter đối đầu
+- số trận pitcher kết thúc (gf): số trận pitcher kết thúc

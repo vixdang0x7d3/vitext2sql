@@ -1,0 +1,3 @@
+- ngày chơi trận cuối (ngày_chơi_trận_cuối): ngày cầu thủ chơi trận cuối
+- mã định danh trong retrosheet (id_trong_retro): mã định danh cầu thủ trong hệ thống retrosheet
+- mã định danh trong baseball reference (id_trong_brref): mã định danh cầu thủ trong hệ thống baseball reference

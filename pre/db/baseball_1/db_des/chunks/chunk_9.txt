@@ -1,0 +1,3 @@
+- tay đánh thuận (tay_đánh_thuận): tay đánh bóng thuận của cầu thủ
+- tay ném thuận (tay_ném_thuận): tay ném bóng thuận của cầu thủ
+- ngày ra mắt (ngày_ra_mắt): ngày cầu thủ ra mắt

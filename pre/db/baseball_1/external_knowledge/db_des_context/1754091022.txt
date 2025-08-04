@@ -1,0 +1,14 @@
+
+**Relevant DB description Concepts:**
+1. - số cú đánh ba (loại_ba_người): số cú đánh giúp lên base thứ ba
+- số cú home run (hr): số cú home run
+- số lần đi bộ (bb): số lần đi bộ
+2. - số cú đánh trúng (h): số cú đánh trúng
+- số cú đánh đôi (loại_hai_người): số cú đánh giúp lên base thứ hai
+- số cú đánh ba (loại_ba_người): số cú đánh giúp lên base thứ ba
+3. - số pha loại hai cầu thủ (dp): số pha loại 2 cầu thủ
+- số pha loại ba cầu thủ (tp): triple plays – số pha loại 3 cầu thủ
+- số bóng catcher để lọt qua (pb): số bóng catcher để lọt qua
+4. - số trận ở vị trí second base (g_2b): số trận ở vị trí second base
+- số trận ở vị trí third base (g_3b): số trận ở vị trí third base
+- số trận ở vị trí shortstop (g_ss): số trận ở vị trí shortstop

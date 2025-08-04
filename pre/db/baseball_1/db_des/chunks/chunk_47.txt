@@ -1,0 +1,3 @@
+- mã định danh cầu thủ (id_cầu_thủ): mã định danh của cầu thủ
+- mã định danh trường đại học (id_trường_đại_học): mã định danh của trường đại học
+- năm (năm): năm cầu thủ học tại trường

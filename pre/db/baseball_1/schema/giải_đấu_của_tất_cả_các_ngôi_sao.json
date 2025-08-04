@@ -1,0 +1,75 @@
+{
+    "table_name": "giải_đấu_của_tất_cả_các_ngôi_sao",
+    "table_fullname": "giải_đấu_của_tất_cả_các_ngôi_sao",
+    "column_names": [
+        "id_cầu_thủ",
+        "năm",
+        "số_lượng_trận_đấu",
+        "id_trận_đấu",
+        "id_đội",
+        "id_giải_đấu",
+        "gp",
+        "vị_trí_bắt_đầu"
+    ],
+    "column_types": [
+        "TEXT",
+        "INTEGER",
+        "INTEGER",
+        "TEXT",
+        "TEXT",
+        "TEXT",
+        "INTEGER",
+        "INTEGER"
+    ],
+    "description": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+    ],
+    "primary_keys": [],
+    "foreign_keys": [
+        {
+            "from_column": "id_cầu_thủ",
+            "to_table": "cầu_thủ",
+            "to_column": "id_cầu_thủ"
+        }
+    ],
+    "is_referenced_by": [],
+    "sample_rows": [
+        {
+            "id_cầu_thủ": "P001",
+            "năm": 2024,
+            "số_lượng_trận_đấu": 1,
+            "id_trận_đấu": "AS1",
+            "id_đội": "T001",
+            "id_giải_đấu": "L001",
+            "gp": 1,
+            "vị_trí_bắt_đầu": 1
+        },
+        {
+            "id_cầu_thủ": "P002",
+            "năm": 2024,
+            "số_lượng_trận_đấu": 1,
+            "id_trận_đấu": "AS2",
+            "id_đội": "T002",
+            "id_giải_đấu": "L001",
+            "gp": 1,
+            "vị_trí_bắt_đầu": 2
+        },
+        {
+            "id_cầu_thủ": "P003",
+            "năm": 2024,
+            "số_lượng_trận_đấu": 1,
+            "id_trận_đấu": "AS3",
+            "id_đội": "T003",
+            "id_giải_đấu": "L001",
+            "gp": 1,
+            "vị_trí_bắt_đầu": 3
+        }
+    ]
+}

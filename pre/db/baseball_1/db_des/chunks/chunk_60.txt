@@ -1,0 +1,3 @@
+- số lần loại cầu thủ đối phương trực tiếp (po): số lần loại cầu thủ đối phương trực tiếp
+- số lần hỗ trợ loại cầu thủ đối phương (a): số lần hỗ trợ loại cầu thủ đối phương
+- số lỗi phòng ngự (e): số lỗi phòng ngự

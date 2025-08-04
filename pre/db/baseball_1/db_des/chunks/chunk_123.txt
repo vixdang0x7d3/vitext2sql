@@ -1,0 +1,3 @@
+- thắng phân hạng hay không (thắng_phân_hạng_hay_không): đội có thắng phân hạng hay không
+- xếp hạng (xếp_hạng): xếp hạng của đội trong hiệp đấu
+- số trận tham gia (g): số trận tham gia

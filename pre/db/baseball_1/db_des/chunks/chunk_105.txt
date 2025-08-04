@@ -1,0 +1,3 @@
+- năm (năm): năm ghi nhận thành tích
+- mã định danh giải đấu (id_giải_đấu): mã định danh của giải đấu
+- mã định danh đội (id_đội): mã định danh của đội

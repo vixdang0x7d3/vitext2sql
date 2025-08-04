@@ -1,0 +1,3 @@
+- mã định danh cầu thủ (id_cầu_thủ): mã định danh của cầu thủ
+- năm sinh (năm_sinh): năm sinh của cầu thủ
+- tháng sinh (tháng_sinh): tháng sinh của cầu thủ

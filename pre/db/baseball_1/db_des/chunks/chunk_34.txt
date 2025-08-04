@@ -1,0 +1,3 @@
+- số lần ghi điểm (r): số lần ghi điểm
+- số cú đánh trúng (h): số cú đánh trúng
+- số cú đánh đôi (loại_hai_người): số cú đánh giúp lên base thứ hai

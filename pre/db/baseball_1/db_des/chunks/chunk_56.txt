@@ -1,0 +1,3 @@
+- số trận ở vị trí center field (gcf): số trận ở vị trí center field
+- số trận ở vị trí right field (grf): số trận ở vị trí right field
+bảng: thành tích phòng ngự sau mùa giải

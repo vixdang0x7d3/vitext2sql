@@ -1,0 +1,3 @@
+- số cú home run (hr): số cú home run
+- số điểm đồng đội ghi nhờ cú đánh (rbi): runs batted in – số điểm đồng đội ghi nhờ cú đánh
+- số lần cướp base thành công (sb): số lần cướp base thành công

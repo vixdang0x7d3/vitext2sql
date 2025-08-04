@@ -1,0 +1,3 @@
+bảng: bình chọn giải thưởng dành cho huấn luyện viên
+- mã định danh giải thưởng (id_giải_thưởng): mã định danh của giải thưởng
+- năm (năm): năm bình chọn

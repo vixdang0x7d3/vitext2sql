@@ -1,0 +1,3 @@
+- thành phố nơi sinh (thành_phố_nơi_sinh): thành phố nơi cầu thủ sinh ra
+- năm mất (năm_mất): năm mất của cầu thủ (nếu có)
+- tháng mất (tháng_mất): tháng mất của cầu thủ (nếu có)

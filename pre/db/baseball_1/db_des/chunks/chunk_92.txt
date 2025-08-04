@@ -1,0 +1,3 @@
+- số điểm đối thủ ghi mà không nhờ lỗi (er): số điểm đối thủ ghi mà không nhờ lỗi
+- số cú home run của đối thủ (hr): số cú home run của đối thủ
+- số lần đi bộ của đối thủ (bb): số lần đi bộ của đối thủ

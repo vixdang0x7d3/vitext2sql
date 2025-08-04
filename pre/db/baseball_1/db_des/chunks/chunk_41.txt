@@ -1,0 +1,3 @@
+- số trận tham gia (g): số trận tham gia
+- số lượt đánh chính thức (ab): số lượt đánh chính thức
+- số lần ghi điểm (r): số lần ghi điểm

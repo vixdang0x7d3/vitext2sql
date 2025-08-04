@@ -1,0 +1,56 @@
+{
+    "table_name": "trường_đại_học",
+    "table_fullname": "trường_đại_học",
+    "column_names": [
+        "id_trường_đại_học",
+        "tên_đầy_đủ",
+        "thành_phố",
+        "tiểu_bang",
+        "quốc_gia"
+    ],
+    "column_types": [
+        "TEXT",
+        "TEXT",
+        "TEXT",
+        "TEXT",
+        "TEXT"
+    ],
+    "description": [
+        "",
+        "",
+        "",
+        "",
+        ""
+    ],
+    "primary_keys": [],
+    "foreign_keys": [],
+    "is_referenced_by": [
+        {
+            "from_table": "cầu_thủ_của_trường_đại_học",
+            "from_column": "id_trường_đại_học"
+        }
+    ],
+    "sample_rows": [
+        {
+            "id_trường_đại_học": "U001",
+            "tên_đầy_đủ": "ĐH Thể Thao Hà Nội",
+            "thành_phố": "Hà Nội",
+            "tiểu_bang": "HN",
+            "quốc_gia": "Việt Nam"
+        },
+        {
+            "id_trường_đại_học": "U002",
+            "tên_đầy_đủ": "ĐH TDTT TP.HCM",
+            "thành_phố": "TP.HCM",
+            "tiểu_bang": "HCM",
+            "quốc_gia": "Việt Nam"
+        },
+        {
+            "id_trường_đại_học": "U003",
+            "tên_đầy_đủ": "ĐH Đà Nẵng",
+            "thành_phố": "Đà Nẵng",
+            "tiểu_bang": "DN",
+            "quốc_gia": "Việt Nam"
+        }
+    ]
+}

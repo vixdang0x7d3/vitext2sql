@@ -1,0 +1,3 @@
+- tên đầy đủ (tên_đầy_đủ): tên đầy đủ của trường đại học
+- thành phố (thành_phố): thành phố nơi trường tọa lạc
+- tiểu bang (tiểu_bang): tiểu bang nơi trường tọa lạc

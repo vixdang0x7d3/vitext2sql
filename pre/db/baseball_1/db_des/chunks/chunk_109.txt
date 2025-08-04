@@ -1,0 +1,3 @@
+- thắng ở giải bóng chày hay không (thắng_ở_giải_bóng_chày_hay_không): đội có thắng giải bóng chày hay không
+- thắng ở world series hay không (thắng_ở_world_series_hay_không): đội có thắng world series hay không
+- số lần ghi điểm (r): số lần ghi điểm

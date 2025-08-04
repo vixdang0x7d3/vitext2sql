@@ -1,0 +1,86 @@
+{
+    "table_name": "trận_đấu_sân_nhà",
+    "table_fullname": "trận_đấu_sân_nhà",
+    "column_names": [
+        "năm",
+        "id_giải_đấu",
+        "id_đội",
+        "id_sân_vận_động",
+        "ngày_của_trận_đầu_tiên",
+        "ngày_của_trận_cuối_cùng",
+        "số_lượng_trận_đấu",
+        "số_lần_mở_cửa",
+        "số_lượng_dự_khán"
+    ],
+    "column_types": [
+        "INTEGER",
+        "TEXT",
+        "TEXT",
+        "TEXT",
+        "TEXT",
+        "TEXT",
+        "INTEGER",
+        "INTEGER",
+        "INTEGER"
+    ],
+    "description": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+    ],
+    "primary_keys": [],
+    "foreign_keys": [
+        {
+            "from_column": "id_sân_vận_động",
+            "to_table": "sân_vận_động",
+            "to_column": "id_sân_vận_động"
+        },
+        {
+            "from_column": "id_đội",
+            "to_table": "đội",
+            "to_column": "id_đội"
+        }
+    ],
+    "is_referenced_by": [],
+    "sample_rows": [
+        {
+            "năm": 2024,
+            "id_giải_đấu": "L001",
+            "id_đội": "T001",
+            "id_sân_vận_động": "S001",
+            "ngày_của_trận_đầu_tiên": "2024-04-01",
+            "ngày_của_trận_cuối_cùng": "2024-09-30",
+            "số_lượng_trận_đấu": 81,
+            "số_lần_mở_cửa": 81,
+            "số_lượng_dự_khán": 200000
+        },
+        {
+            "năm": 2024,
+            "id_giải_đấu": "L001",
+            "id_đội": "T002",
+            "id_sân_vận_động": "S002",
+            "ngày_của_trận_đầu_tiên": "2024-04-01",
+            "ngày_của_trận_cuối_cùng": "2024-09-30",
+            "số_lượng_trận_đấu": 81,
+            "số_lần_mở_cửa": 81,
+            "số_lượng_dự_khán": 250000
+        },
+        {
+            "năm": 2024,
+            "id_giải_đấu": "L001",
+            "id_đội": "T003",
+            "id_sân_vận_động": "S003",
+            "ngày_của_trận_đầu_tiên": "2024-04-01",
+            "ngày_của_trận_cuối_cùng": "2024-09-30",
+            "số_lượng_trận_đấu": 81,
+            "số_lần_mở_cửa": 81,
+            "số_lượng_dự_khán": 300000
+        }
+    ]
+}

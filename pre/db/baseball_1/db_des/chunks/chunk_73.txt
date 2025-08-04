@@ -1,0 +1,3 @@
+bảng: thành tích huấn luyện viên theo hiệp
+- mã định danh cầu thủ (id_cầu_thủ): mã định danh của huấn luyện viên
+- năm (năm): năm ghi nhận thành tích

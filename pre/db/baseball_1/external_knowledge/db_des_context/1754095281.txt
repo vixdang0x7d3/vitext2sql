@@ -1,0 +1,14 @@
+
+**Relevant DB description Concepts:**
+1. - số pha loại hai cầu thủ (dp): số pha loại 2 cầu thủ
+- số pha loại ba cầu thủ (tp): triple plays – số pha loại 3 cầu thủ
+- số bóng catcher để lọt qua (pb): số bóng catcher để lọt qua
+2. - lỗi di chuyển của pitcher (bk): lỗi di chuyển của pitcher
+- tổng số batter đối đầu (bfp): tổng số batter đối đầu
+- số trận pitcher kết thúc (gf): số trận pitcher kết thúc
+3. - số lỗi phòng ngự (e): số lỗi phòng ngự
+- số pha loại hai cầu thủ (dp): số pha loại 2 cầu thủ
+- số bóng catcher để lọt qua (pb): số bóng catcher để lọt qua
+4. - số lần đi bộ cố ý của đối thủ (ibb): đi bộ cố ý của đối thủ
+- số lần ném bóng hỏng (wp): số lần ném bóng hỏng
+- số lần ném trúng batter đối thủ (hbp): số lần ném trúng batter đối thủ

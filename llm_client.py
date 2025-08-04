@@ -265,7 +265,7 @@ class LLMClient(ABC):
             "effective_max_tokens": self.effective_max_tokens,
         }
 
-    def init_message(self):
+    def init_messages(self):
         """Reset conversation history"""
         self.messages = []
         if self.system_prompt:

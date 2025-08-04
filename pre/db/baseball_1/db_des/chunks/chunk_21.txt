@@ -1,0 +1,3 @@
+- số trận ở vai trò pinch runner (g_pr): số trận ở vai trò pinch runner
+bảng: giải thưởng dành cho huấn luyện viên
+- mã định danh cầu thủ (id_cầu_thủ): mã định danh của huấn luyện viên (cầu thủ)

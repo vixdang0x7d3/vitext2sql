@@ -1,0 +1,45 @@
+{
+    "table_name": "nhượng_quyền_thương_mại_của_các_đội",
+    "table_fullname": "nhượng_quyền_thương_mại_của_các_đội",
+    "column_names": [
+        "id_nhượng_quyền_thương_mại",
+        "tên_nhượng_quyền_thương_mại",
+        "hoạt_động",
+        "na_assoc"
+    ],
+    "column_types": [
+        "TEXT",
+        "TEXT",
+        "TEXT",
+        "TEXT"
+    ],
+    "description": [
+        "",
+        "",
+        "",
+        ""
+    ],
+    "primary_keys": [],
+    "foreign_keys": [],
+    "is_referenced_by": [],
+    "sample_rows": [
+        {
+            "id_nhượng_quyền_thương_mại": "F001",
+            "tên_nhượng_quyền_thương_mại": "Rồng Đỏ",
+            "hoạt_động": "Có",
+            "na_assoc": "NA1"
+        },
+        {
+            "id_nhượng_quyền_thương_mại": "F002",
+            "tên_nhượng_quyền_thương_mại": "Sư Tử Vàng",
+            "hoạt_động": "Có",
+            "na_assoc": "NA2"
+        },
+        {
+            "id_nhượng_quyền_thương_mại": "F003",
+            "tên_nhượng_quyền_thương_mại": "Hổ Xanh",
+            "hoạt_động": "Không",
+            "na_assoc": "NA3"
+        }
+    ]
+}

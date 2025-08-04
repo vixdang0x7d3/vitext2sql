@@ -1,0 +1,527 @@
+Table full name: bình_chọn_giải_thưởng_dành_cho_cầu_thủ
+Foreign keys:
+    id_cầu_thủ → cầu_thủ.id_cầu_thủ
+Column name: id_giải_thưởng Type: TEXT
+Column name: năm Type: INTEGER
+Column name: id_giải_đấu Type: TEXT
+Column name: id_cầu_thủ Type: TEXT
+Column name: số_điểm_chiến_thắng Type: INTEGER
+Column name: số_điểm_tối_đa Type: INTEGER
+Column name: lượt_bình_chọn_đầu_tiên Type: INTEGER
+Sample rows:
+[{'id_giải_thưởng': 'MVP', 'năm': 2024, 'id_giải_đấu': 'L001', 'id_cầu_thủ': 'P001', 'số_điểm_chiến_thắng': 100, 'số_điểm_tối_đa': 120, 'lượt_bình_chọn_đầu_tiên': 10}, {'id_giải_thưởng': 'GoldenBat', 'năm': 2024, 'id_giải_đấu': 'L001', 'id_cầu_thủ': 'P002', 'số_điểm_chiến_thắng': 90, 'số_điểm_tối_đa': 120, 'lượt_bình_chọn_đầu_tiên': 9}, {'id_giải_thưởng': 'SilverGlove', 'năm': 2024, 'id_giải_đấu': 'L001', 'id_cầu_thủ': 'P003', 'số_điểm_chiến_thắng': 80, 'số_điểm_tối_đa': 120, 'lượt_bình_chọn_đầu_tiên': 8}]
+--------------------------------------------------
+Table full name: bình_chọn_giải_thưởng_dành_cho_huấn_luận_viên
+Column name: id_giải_thưởng Type: TEXT
+Column name: năm Type: INTEGER
+Column name: id_giải_đấu Type: TEXT
+Column name: id_cầu_thủ Type: TEXT
+Column name: số_điểm_chiến_thắng Type: INTEGER
+Column name: số_điểm_tối_đa Type: INTEGER
+Column name: lượt_bình_chọn_đầu_tiên Type: INTEGER
+Sample rows:
+[{'id_giải_thưởng': 'MVP_Coach', 'năm': 2024, 'id_giải_đấu': 'L001', 'id_cầu_thủ': 'P001', 'số_điểm_chiến_thắng': 80, 'số_điểm_tối_đa': 100, 'lượt_bình_chọn_đầu_tiên': 5}, {'id_giải_thưởng': 'GoldenBat_Coach', 'năm': 2024, 'id_giải_đấu': 'L001', 'id_cầu_thủ': 'P002', 'số_điểm_chiến_thắng': 75, 'số_điểm_tối_đa': 100, 'lượt_bình_chọn_đầu_tiên': 4}, {'id_giải_thưởng': 'SilverGlove_Coach', 'năm': 2024, 'id_giải_đấu': 'L001', 'id_cầu_thủ': 'P003', 'số_điểm_chiến_thắng': 70, 'số_điểm_tối_đa': 100, 'lượt_bình_chọn_đầu_tiên': 3}]
+--------------------------------------------------
+Table full name: cầu_thủ
+Is referenced by:
+    bình_chọn_giải_thưởng_dành_cho_cầu_thủ.id_cầu_thủ
+    giải_thưởng_dành_cho_huấn_luyện_viên.id_cầu_thủ
+    giải_thưởng_dành_cho_cầu_thủ.id_cầu_thủ
+    giải_đấu_của_tất_cả_các_ngôi_sao.id_cầu_thủ
+    cầu_thủ_của_trường_đại_học.id_cầu_thủ
+    thành_tích_đánh_bóng.id_cầu_thủ
+    thành_tích_phòng_ngự.id_cầu_thủ
+    thành_tích_phòng_ngự_sân_ngoài.id_cầu_thủ
+    đại_lộ_danh_vọng.id_cầu_thủ
+    thành_tích_đánh_bóng_sau_mùa_giải.id_cầu_thủ
+    thành_tích_phòng_ngự_sau_mùa_giải.id_cầu_thủ
+    lần_xuất_hiện.id_cầu_thủ
+Column name: id_cầu_thủ Type: TEXT
+Column name: năm_sinh Type: INTEGER
+Column name: tháng_sinh Type: INTEGER
+Column name: ngày_sinh Type: INTEGER
+Column name: đất_nước_nơi_sinh Type: TEXT
+Column name: tiểu_bang_nơi_sinh Type: TEXT
+Column name: thành_phố_nơi_sinh Type: TEXT
+Column name: năm_mất Type: INTEGER
+Column name: tháng_mất Type: INTEGER
+Column name: ngày_mất Type: INTEGER
+Column name: đất_nước_nơi_mất Type: TEXT
+Column name: tiểu_bang_nơi_mất Type: TEXT
+Column name: thành_phố_nơi_mất Type: TEXT
+Column name: tên Type: TEXT
+Column name: họ Type: TEXT
+Column name: tên_đệm Type: TEXT
+Column name: cân_nặng Type: INTEGER
+Column name: chiều_cao Type: INTEGER
+Column name: tay_đánh_thuận Type: TEXT
+Column name: tay_ném_thuận Type: TEXT
+Column name: ngày_ra_mắt Type: TEXT
+Column name: ngày_chơi_trận_cuối Type: TEXT
+Column name: id_trong_retro Type: TEXT
+Column name: id_trong_brref Type: TEXT
+Sample rows:
+[{'id_cầu_thủ': 'P001', 'năm_sinh': 1990, 'tháng_sinh': 5, 'ngày_sinh': 20, 'đất_nước_nơi_sinh': 'Việt Nam', 'tiểu_bang_nơi_sinh': 'HN', 'thành_phố_nơi_sinh': 'Hà Nội', 'năm_mất': None, 'tháng_mất': None, 'ngày_mất': None, 'đất_nước_nơi_mất': None, 'tiểu_bang_nơi_mất': None, 'thành_phố_nơi_mất': None, 'tên': 'An', 'họ': 'Nguyễn', 'tên_đệm': 'Văn', 'cân_nặng': 75, 'chiều_cao': 180, 'tay_đánh_thuận': 'Phải', 'tay_ném_thuận': 'Phải', 'ngày_ra_mắt': '2010-04-01', 'ngày_chơi_trận_cuối': '2024-09-30', 'id_trong_retro': 'R001', 'id_trong_brref': 'B001'}, {'id_cầu_thủ': 'P002', 'năm_sinh': 1992, 'tháng_sinh': 8, 'ngày_sinh': 15, 'đất_nước_nơi_sinh': 'Việt Nam', 'tiểu_bang_nơi_sinh': 'HCM', 'thành_phố_nơi_sinh': 'TP.HCM', 'năm_mất': None, 'tháng_mất': None, 'ngày_mất': None, 'đất_nước_nơi_mất': None, 'tiểu_bang_nơi_mất': None, 'thành_phố_nơi_mất': None, 'tên': 'Bình', 'họ': 'Trần', 'tên_đệm': 'Hữu', 'cân_nặng': 80, 'chiều_cao': 178, 'tay_đánh_thuận': 'Trái', 'tay_ném_thuận': 'Phải', 'ngày_ra_mắt': '2012-04-03', 'ngày_chơi_trận_cuối': '2024-09-30', 'id_trong_retro': 'R002', 'id_trong_brref': 'B002'}, {'id_cầu_thủ': 'P003', 'năm_sinh': 1995, 'tháng_sinh': 12, 'ngày_sinh': 5, 'đất_nước_nơi_sinh': 'Việt Nam', 'tiểu_bang_nơi_sinh': 'DN', 'thành_phố_nơi_sinh': 'Đà Nẵng', 'năm_mất': None, 'tháng_mất': None, 'ngày_mất': None, 'đất_nước_nơi_mất': None, 'tiểu_bang_nơi_mất': None, 'thành_phố_nơi_mất': None, 'tên': 'Cường', 'họ': 'Lê', 'tên_đệm': 'Quang', 'cân_nặng': 78, 'chiều_cao': 182, 'tay_đánh_thuận': 'Phải', 'tay_ném_thuận': 'Trái', 'ngày_ra_mắt': '2015-04-05', 'ngày_chơi_trận_cuối': '2024-09-30', 'id_trong_retro': 'R003', 'id_trong_brref': 'B003'}]
+--------------------------------------------------
+Table full name: cầu_thủ_của_trường_đại_học
+Foreign keys:
+    id_trường_đại_học → trường_đại_học.id_trường_đại_học
+    id_cầu_thủ → cầu_thủ.id_cầu_thủ
+Column name: id_cầu_thủ Type: TEXT
+Column name: id_trường_đại_học Type: TEXT
+Column name: năm Type: INTEGER
+Sample rows:
+[{'id_cầu_thủ': 'P001', 'id_trường_đại_học': 'U001', 'năm': 2010}, {'id_cầu_thủ': 'P002', 'id_trường_đại_học': 'U002', 'năm': 2010}, {'id_cầu_thủ': 'P003', 'id_trường_đại_học': 'U003', 'năm': 2010}]
+--------------------------------------------------
+Table full name: giải_thưởng_dành_cho_cầu_thủ
+Foreign keys:
+    id_cầu_thủ → cầu_thủ.id_cầu_thủ
+Column name: id_cầu_thủ Type: TEXT
+Column name: id_giải_thưởng Type: TEXT
+Column name: năm Type: INTEGER
+Column name: id_giải_đấu Type: TEXT
+Column name: số_trận_hoà Type: TEXT
+Column name: ghi_chú Type: TEXT
+Sample rows:
+[{'id_cầu_thủ': 'P001', 'id_giải_thưởng': 'MVP', 'năm': 2024, 'id_giải_đấu': 'L001', 'số_trận_hoà': '0', 'ghi_chú': 'Không có'}, {'id_cầu_thủ': 'P002', 'id_giải_thưởng': 'GoldenBat', 'năm': 2024, 'id_giải_đấu': 'L001', 'số_trận_hoà': '0', 'ghi_chú': 'Không có'}, {'id_cầu_thủ': 'P003', 'id_giải_thưởng': 'SilverGlove', 'năm': 2024, 'id_giải_đấu': 'L001', 'số_trận_hoà': '0', 'ghi_chú': 'Không có'}]
+--------------------------------------------------
+Table full name: giải_thưởng_dành_cho_huấn_luyện_viên
+Foreign keys:
+    id_cầu_thủ → cầu_thủ.id_cầu_thủ
+Column name: id_cầu_thủ Type: TEXT
+Column name: id_giải_thưởng Type: TEXT
+Column name: năm Type: INTEGER
+Column name: id_giải_đấu Type: TEXT
+Column name: số_trận_hoà Type: TEXT
+Column name: ghi_chú Type: INTEGER
+Sample rows:
+[{'id_cầu_thủ': 'P001', 'id_giải_thưởng': 'MVP_Coach', 'năm': 2024, 'id_giải_đấu': 'L001', 'số_trận_hoà': '0', 'ghi_chú': 0}, {'id_cầu_thủ': 'P002', 'id_giải_thưởng': 'GoldenBat_Coach', 'năm': 2024, 'id_giải_đấu': 'L001', 'số_trận_hoà': '0', 'ghi_chú': 0}, {'id_cầu_thủ': 'P003', 'id_giải_thưởng': 'SilverGlove_Coach', 'năm': 2024, 'id_giải_đấu': 'L001', 'số_trận_hoà': '0', 'ghi_chú': 0}]
+--------------------------------------------------
+Table full name: giải_đấu_của_tất_cả_các_ngôi_sao
+Foreign keys:
+    id_cầu_thủ → cầu_thủ.id_cầu_thủ
+Column name: id_cầu_thủ Type: TEXT
+Column name: năm Type: INTEGER
+Column name: số_lượng_trận_đấu Type: INTEGER
+Column name: id_trận_đấu Type: TEXT
+Column name: id_đội Type: TEXT
+Column name: id_giải_đấu Type: TEXT
+Column name: gp Type: INTEGER
+Column name: vị_trí_bắt_đầu Type: INTEGER
+Sample rows:
+[{'id_cầu_thủ': 'P001', 'năm': 2024, 'số_lượng_trận_đấu': 1, 'id_trận_đấu': 'AS1', 'id_đội': 'T001', 'id_giải_đấu': 'L001', 'gp': 1, 'vị_trí_bắt_đầu': 1}, {'id_cầu_thủ': 'P002', 'năm': 2024, 'số_lượng_trận_đấu': 1, 'id_trận_đấu': 'AS2', 'id_đội': 'T002', 'id_giải_đấu': 'L001', 'gp': 1, 'vị_trí_bắt_đầu': 2}, {'id_cầu_thủ': 'P003', 'năm': 2024, 'số_lượng_trận_đấu': 1, 'id_trận_đấu': 'AS3', 'id_đội': 'T003', 'id_giải_đấu': 'L001', 'gp': 1, 'vị_trí_bắt_đầu': 3}]
+--------------------------------------------------
+Table full name: giải_đấu_sau_mùa_giải
+Column name: năm Type: INTEGER
+Column name: vòng_đấu Type: TEXT
+Column name: id_đội_chiến_thắng Type: TEXT
+Column name: id_đội_chiến_thắng_tại_giải_đấu Type: TEXT
+Column name: id_đội_thua_cuộc Type: TEXT
+Column name: id_đội_thua_cuộc_tại_giải_đấu Type: TEXT
+Column name: thắng Type: INTEGER
+Column name: thua Type: INTEGER
+Column name: hoà Type: INTEGER
+Sample rows:
+[{'năm': 2024, 'vòng_đấu': 'Bán kết', 'id_đội_chiến_thắng': 'T001', 'id_đội_chiến_thắng_tại_giải_đấu': 'W1', 'id_đội_thua_cuộc': 'T002', 'id_đội_thua_cuộc_tại_giải_đấu': 'L1', 'thắng': 3, 'thua': 2, 'hoà': 0}, {'năm': 2024, 'vòng_đấu': 'Bán kết', 'id_đội_chiến_thắng': 'T002', 'id_đội_chiến_thắng_tại_giải_đấu': 'W2', 'id_đội_thua_cuộc': 'T003', 'id_đội_thua_cuộc_tại_giải_đấu': 'L2', 'thắng': 3, 'thua': 2, 'hoà': 0}, {'năm': 2024, 'vòng_đấu': 'Bán kết', 'id_đội_chiến_thắng': 'T003', 'id_đội_chiến_thắng_tại_giải_đấu': 'W3', 'id_đội_thua_cuộc': 'T001', 'id_đội_thua_cuộc_tại_giải_đấu': 'L3', 'thắng': 3, 'thua': 2, 'hoà': 0}]
+--------------------------------------------------
+Table full name: lương
+Column name: năm Type: INTEGER
+Column name: id_đội Type: TEXT
+Column name: id_giải_đấu Type: TEXT
+Column name: id_cầu_thủ Type: TEXT
+Column name: lương Type: INTEGER
+Sample rows:
+[{'năm': 2024, 'id_đội': 'T001', 'id_giải_đấu': 'L001', 'id_cầu_thủ': 'P001', 'lương': 182394}, {'năm': 2024, 'id_đội': 'T002', 'id_giải_đấu': 'L001', 'id_cầu_thủ': 'P001', 'lương': 179962}, {'năm': 2024, 'id_đội': 'T003', 'id_giải_đấu': 'L001', 'id_cầu_thủ': 'P001', 'lương': 482815}]
+--------------------------------------------------
+Table full name: lần_xuất_hiện
+Foreign keys:
+    id_cầu_thủ → cầu_thủ.id_cầu_thủ
+    id_đội → đội.id_đội
+Column name: năm Type: INTEGER
+Column name: id_đội Type: TEXT
+Column name: id_giải_đấu Type: TEXT
+Column name: id_cầu_thủ Type: TEXT
+Column name: g_toàn_bộ Type: INTEGER
+Column name: gs Type: INTEGER
+Column name: g_đánh_bóng Type: INTEGER
+Column name: g_phòng_ngự Type: INTEGER
+Column name: g_p Type: INTEGER
+Column name: g_c Type: INTEGER
+Column name: g_1b Type: INTEGER
+Column name: g_2b Type: INTEGER
+Column name: g_3b Type: INTEGER
+Column name: g_ss Type: INTEGER
+Column name: g_lf Type: INTEGER
+Column name: g_cf Type: INTEGER
+Column name: g_rf Type: INTEGER
+Column name: g_of Type: INTEGER
+Column name: g_dh Type: INTEGER
+Column name: g_ph Type: INTEGER
+Column name: g_pr Type: INTEGER
+Sample rows:
+[{'năm': 2024, 'id_đội': 'T001', 'id_giải_đấu': 'L001', 'id_cầu_thủ': 'P001', 'g_toàn_bộ': 100, 'gs': 80, 'g_đánh_bóng': 70, 'g_phòng_ngự': 60, 'g_p': 30, 'g_c': 10, 'g_1b': 5, 'g_2b': 3, 'g_3b': 2, 'g_ss': 5, 'g_lf': 4, 'g_cf': 3, 'g_rf': 12, 'g_of': 1, 'g_dh': 1, 'g_ph': 0, 'g_pr': 0}, {'năm': 2024, 'id_đội': 'T002', 'id_giải_đấu': 'L001', 'id_cầu_thủ': 'P002', 'g_toàn_bộ': 100, 'gs': 80, 'g_đánh_bóng': 70, 'g_phòng_ngự': 60, 'g_p': 30, 'g_c': 10, 'g_1b': 5, 'g_2b': 3, 'g_3b': 2, 'g_ss': 5, 'g_lf': 4, 'g_cf': 3, 'g_rf': 12, 'g_of': 1, 'g_dh': 1, 'g_ph': 0, 'g_pr': 0}, {'năm': 2024, 'id_đội': 'T003', 'id_giải_đấu': 'L001', 'id_cầu_thủ': 'P003', 'g_toàn_bộ': 100, 'gs': 80, 'g_đánh_bóng': 70, 'g_phòng_ngự': 60, 'g_p': 30, 'g_c': 10, 'g_1b': 5, 'g_2b': 3, 'g_3b': 2, 'g_ss': 5, 'g_lf': 4, 'g_cf': 3, 'g_rf': 12, 'g_of': 1, 'g_dh': 1, 'g_ph': 0, 'g_pr': 0}]
+--------------------------------------------------
+Table full name: nhượng_quyền_thương_mại_của_các_đội
+Column name: id_nhượng_quyền_thương_mại Type: TEXT
+Column name: tên_nhượng_quyền_thương_mại Type: TEXT
+Column name: hoạt_động Type: TEXT
+Column name: na_assoc Type: TEXT
+Sample rows:
+[{'id_nhượng_quyền_thương_mại': 'F001', 'tên_nhượng_quyền_thương_mại': 'Rồng Đỏ', 'hoạt_động': 'Có', 'na_assoc': 'NA1'}, {'id_nhượng_quyền_thương_mại': 'F002', 'tên_nhượng_quyền_thương_mại': 'Sư Tử Vàng', 'hoạt_động': 'Có', 'na_assoc': 'NA2'}, {'id_nhượng_quyền_thương_mại': 'F003', 'tên_nhượng_quyền_thương_mại': 'Hổ Xanh', 'hoạt_động': 'Không', 'na_assoc': 'NA3'}]
+--------------------------------------------------
+Table full name: sân_vận_động
+Is referenced by:
+    trận_đấu_sân_nhà.id_sân_vận_động
+Column name: id_sân_vận_động Type: TEXT
+Column name: tên_sân_vận_động Type: TEXT
+Column name: tên_gọi_khác_của_sân_vận_động Type: TEXT
+Column name: thành_phố Type: TEXT
+Column name: tiểu_bang Type: TEXT
+Column name: quốc_gia Type: TEXT
+Sample rows:
+[{'id_sân_vận_động': 'S001', 'tên_sân_vận_động': 'Sân Rồng', 'tên_gọi_khác_của_sân_vận_động': 'Dragon Field', 'thành_phố': 'Hà Nội', 'tiểu_bang': 'HN', 'quốc_gia': 'Việt Nam'}, {'id_sân_vận_động': 'S002', 'tên_sân_vận_động': 'Sân Sư Tử', 'tên_gọi_khác_của_sân_vận_động': 'Lion Stadium', 'thành_phố': 'TP.HCM', 'tiểu_bang': 'HCM', 'quốc_gia': 'Việt Nam'}, {'id_sân_vận_động': 'S003', 'tên_sân_vận_động': 'Sân Hổ', 'tên_gọi_khác_của_sân_vận_động': 'Tiger Arena', 'thành_phố': 'Đà Nẵng', 'tiểu_bang': 'DN', 'quốc_gia': 'Việt Nam'}]
+--------------------------------------------------
+Table full name: thành_tích_huấn_luyện_viên
+Foreign keys:
+    id_đội → đội.id_đội
+Column name: id_cầu_thủ Type: TEXT
+Column name: năm Type: INTEGER
+Column name: id_đội Type: TEXT
+Column name: id_giải_đấu Type: TEXT
+Column name: ở_mùa_giải Type: INTEGER
+Column name: g Type: INTEGER
+Column name: w Type: INTEGER
+Column name: l Type: INTEGER
+Column name: thứ_hạng Type: INTEGER
+Column name: plyr_mgr Type: TEXT
+Sample rows:
+[{'id_cầu_thủ': 'P001', 'năm': 2024, 'id_đội': 'T001', 'id_giải_đấu': 'L001', 'ở_mùa_giải': 1, 'g': 162, 'w': 90, 'l': 72, 'thứ_hạng': 1, 'plyr_mgr': 'Có'}, {'id_cầu_thủ': 'P002', 'năm': 2024, 'id_đội': 'T002', 'id_giải_đấu': 'L001', 'ở_mùa_giải': 1, 'g': 162, 'w': 90, 'l': 72, 'thứ_hạng': 2, 'plyr_mgr': 'Có'}, {'id_cầu_thủ': 'P003', 'năm': 2024, 'id_đội': 'T003', 'id_giải_đấu': 'L001', 'ở_mùa_giải': 1, 'g': 162, 'w': 90, 'l': 72, 'thứ_hạng': 3, 'plyr_mgr': 'Có'}]
+--------------------------------------------------
+Table full name: thành_tích_huấn_luyện_viên_theo_hiệp
+Foreign keys:
+    id_đội → đội.id_đội
+Column name: id_cầu_thủ Type: TEXT
+Column name: năm Type: INTEGER
+Column name: id_đội Type: TEXT
+Column name: id_giải_đấu Type: TEXT
+Column name: ở_mùa_giải Type: INTEGER
+Column name: hiệp_đấu Type: INTEGER
+Column name: g Type: INTEGER
+Column name: w Type: INTEGER
+Column name: l Type: INTEGER
+Column name: thứ_hạng Type: INTEGER
+Sample rows:
+[{'id_cầu_thủ': 'P001', 'năm': 2024, 'id_đội': 'T001', 'id_giải_đấu': 'L001', 'ở_mùa_giải': 1, 'hiệp_đấu': 1, 'g': 20, 'w': 12, 'l': 8, 'thứ_hạng': 1}, {'id_cầu_thủ': 'P002', 'năm': 2024, 'id_đội': 'T002', 'id_giải_đấu': 'L001', 'ở_mùa_giải': 1, 'hiệp_đấu': 1, 'g': 20, 'w': 12, 'l': 8, 'thứ_hạng': 2}, {'id_cầu_thủ': 'P003', 'năm': 2024, 'id_đội': 'T003', 'id_giải_đấu': 'L001', 'ở_mùa_giải': 1, 'hiệp_đấu': 1, 'g': 20, 'w': 12, 'l': 8, 'thứ_hạng': 3}]
+--------------------------------------------------
+Table full name: thành_tích_ném_bóng
+Column name: id_cầu_thủ Type: TEXT
+Column name: năm Type: INTEGER
+Column name: thời_gian_chơi_bóng Type: INTEGER
+Column name: id_đội Type: TEXT
+Column name: id_giải_đấu Type: TEXT
+Column name: w Type: INTEGER
+Column name: l Type: INTEGER
+Column name: g Type: INTEGER
+Column name: gs Type: INTEGER
+Column name: cg Type: INTEGER
+Column name: sho Type: INTEGER
+Column name: sv Type: INTEGER
+Column name: ipouts Type: INTEGER
+Column name: h Type: INTEGER
+Column name: er Type: INTEGER
+Column name: hr Type: INTEGER
+Column name: bb Type: INTEGER
+Column name: so Type: INTEGER
+Column name: baopp Type: INTEGER
+Column name: era Type: INTEGER
+Column name: ibb Type: INTEGER
+Column name: wp Type: INTEGER
+Column name: hbp Type: INTEGER
+Column name: bk Type: INTEGER
+Column name: bfp Type: INTEGER
+Column name: gf Type: INTEGER
+Column name: r Type: INTEGER
+Column name: sh Type: INTEGER
+Column name: sf Type: INTEGER
+Column name: g_idp Type: INTEGER
+Sample rows:
+[{'id_cầu_thủ': 'P001', 'năm': 2024, 'thời_gian_chơi_bóng': 1, 'id_đội': 'T001', 'id_giải_đấu': 'L001', 'w': 10, 'l': 5, 'g': 20, 'gs': 15, 'cg': 3, 'sho': 1, 'sv': 2, 'ipouts': 162, 'h': 50, 'er': 20, 'hr': 3, 'bb': 10, 'so': 50, 'baopp': 3, 'era': 2, 'ibb': 0, 'wp': 1, 'hbp': 0, 'bk': 0, 'bfp': 200, 'gf': 5, 'r': 2, 'sh': 1, 'sf': 1, 'g_idp': 0}, {'id_cầu_thủ': 'P002', 'năm': 2024, 'thời_gian_chơi_bóng': 1, 'id_đội': 'T002', 'id_giải_đấu': 'L001', 'w': 10, 'l': 5, 'g': 20, 'gs': 15, 'cg': 3, 'sho': 1, 'sv': 2, 'ipouts': 162, 'h': 50, 'er': 20, 'hr': 3, 'bb': 10, 'so': 50, 'baopp': 3, 'era': 2, 'ibb': 0, 'wp': 1, 'hbp': 0, 'bk': 0, 'bfp': 200, 'gf': 5, 'r': 2, 'sh': 1, 'sf': 1, 'g_idp': 0}, {'id_cầu_thủ': 'P003', 'năm': 2024, 'thời_gian_chơi_bóng': 1, 'id_đội': 'T003', 'id_giải_đấu': 'L001', 'w': 10, 'l': 5, 'g': 20, 'gs': 15, 'cg': 3, 'sho': 1, 'sv': 2, 'ipouts': 162, 'h': 50, 'er': 20, 'hr': 3, 'bb': 10, 'so': 50, 'baopp': 3, 'era': 2, 'ibb': 0, 'wp': 1, 'hbp': 0, 'bk': 0, 'bfp': 200, 'gf': 5, 'r': 2, 'sh': 1, 'sf': 1, 'g_idp': 0}]
+--------------------------------------------------
+Table full name: thành_tích_ném_bóng_sau_mùa_giải
+Column name: id_cầu_thủ Type: TEXT
+Column name: năm Type: INTEGER
+Column name: vòng_đấu Type: TEXT
+Column name: id_đội Type: TEXT
+Column name: id_giải_đấu Type: TEXT
+Column name: w Type: INTEGER
+Column name: l Type: INTEGER
+Column name: g Type: INTEGER
+Column name: gs Type: INTEGER
+Column name: cg Type: INTEGER
+Column name: sho Type: INTEGER
+Column name: sv Type: INTEGER
+Column name: ipouts Type: INTEGER
+Column name: h Type: INTEGER
+Column name: er Type: INTEGER
+Column name: hr Type: INTEGER
+Column name: bb Type: INTEGER
+Column name: so Type: INTEGER
+Column name: baopp Type: TEXT
+Column name: era Type: INTEGER
+Column name: ibb Type: INTEGER
+Column name: wp Type: INTEGER
+Column name: hbp Type: INTEGER
+Column name: bk Type: INTEGER
+Column name: bfp Type: INTEGER
+Column name: gf Type: INTEGER
+Column name: r Type: INTEGER
+Column name: sh Type: INTEGER
+Column name: sf Type: INTEGER
+Column name: g_idp Type: INTEGER
+Sample rows:
+[{'id_cầu_thủ': 'P001', 'năm': 2024, 'vòng_đấu': 'Vòng 1', 'id_đội': 'T001', 'id_giải_đấu': 'L001', 'w': 1, 'l': 0, 'g': 2, 'gs': 1, 'cg': 0, 'sho': 0, 'sv': 0, 'ipouts': 6, 'h': 2, 'er': 1, 'hr': 0, 'bb': 0, 'so': 0.333, 'baopp': '1.5', 'era': 0, 'ibb': 0, 'wp': 0, 'hbp': 0, 'bk': 0, 'bfp': 0, 'gf': 0, 'r': 0, 'sh': 0, 'sf': 0, 'g_idp': 0}, {'id_cầu_thủ': 'P001', 'năm': 2024, 'vòng_đấu': 'Vòng 1', 'id_đội': 'T002', 'id_giải_đấu': 'L001', 'w': 1, 'l': 0, 'g': 2, 'gs': 1, 'cg': 0, 'sho': 0, 'sv': 0, 'ipouts': 6, 'h': 2, 'er': 1, 'hr': 0, 'bb': 0, 'so': 0.333, 'baopp': '1.5', 'era': 0, 'ibb': 0, 'wp': 0, 'hbp': 0, 'bk': 0, 'bfp': 0, 'gf': 0, 'r': 0, 'sh': 0, 'sf': 0, 'g_idp': 0}, {'id_cầu_thủ': 'P001', 'năm': 2024, 'vòng_đấu': 'Vòng 1', 'id_đội': 'T003', 'id_giải_đấu': 'L001', 'w': 1, 'l': 0, 'g': 2, 'gs': 1, 'cg': 0, 'sho': 0, 'sv': 0, 'ipouts': 6, 'h': 2, 'er': 1, 'hr': 0, 'bb': 0, 'so': 0.333, 'baopp': '1.5', 'era': 0, 'ibb': 0, 'wp': 0, 'hbp': 0, 'bk': 0, 'bfp': 0, 'gf': 0, 'r': 0, 'sh': 0, 'sf': 0, 'g_idp': 0}]
+--------------------------------------------------
+Table full name: thành_tích_phòng_ngự
+Foreign keys:
+    id_cầu_thủ → cầu_thủ.id_cầu_thủ
+Column name: id_cầu_thủ Type: TEXT
+Column name: năm Type: INTEGER
+Column name: thời_gian_chơi_bóng Type: INTEGER
+Column name: id_đội Type: TEXT
+Column name: id_giải_đấu Type: TEXT
+Column name: vị_trí Type: TEXT
+Column name: g Type: INTEGER
+Column name: gs Type: INTEGER
+Column name: số_lần_bị_loại_mỗi_lượt Type: INTEGER
+Column name: po Type: INTEGER
+Column name: a Type: INTEGER
+Column name: e Type: INTEGER
+Column name: dp Type: INTEGER
+Column name: pb Type: INTEGER
+Column name: wp Type: INTEGER
+Column name: sb Type: INTEGER
+Column name: cs Type: INTEGER
+Column name: zr Type: INTEGER
+Sample rows:
+[{'id_cầu_thủ': 'P001', 'năm': 2024, 'thời_gian_chơi_bóng': 1, 'id_đội': 'T001', 'id_giải_đấu': 'L001', 'vị_trí': 'CF', 'g': 80, 'gs': 70, 'số_lần_bị_loại_mỗi_lượt': 1, 'po': 150, 'a': 5, 'e': 2, 'dp': 10, 'pb': 0, 'wp': 0, 'sb': 3, 'cs': 1, 'zr': 50}, {'id_cầu_thủ': 'P002', 'năm': 2024, 'thời_gian_chơi_bóng': 1, 'id_đội': 'T002', 'id_giải_đấu': 'L001', 'vị_trí': 'CF', 'g': 80, 'gs': 70, 'số_lần_bị_loại_mỗi_lượt': 1, 'po': 150, 'a': 5, 'e': 2, 'dp': 10, 'pb': 0, 'wp': 0, 'sb': 3, 'cs': 1, 'zr': 50}, {'id_cầu_thủ': 'P003', 'năm': 2024, 'thời_gian_chơi_bóng': 1, 'id_đội': 'T003', 'id_giải_đấu': 'L001', 'vị_trí': 'CF', 'g': 80, 'gs': 70, 'số_lần_bị_loại_mỗi_lượt': 1, 'po': 150, 'a': 5, 'e': 2, 'dp': 10, 'pb': 0, 'wp': 0, 'sb': 3, 'cs': 1, 'zr': 50}]
+--------------------------------------------------
+Table full name: thành_tích_phòng_ngự_sau_mùa_giải
+Foreign keys:
+    id_cầu_thủ → cầu_thủ.id_cầu_thủ
+Column name: id_cầu_thủ Type: TEXT
+Column name: năm Type: INTEGER
+Column name: id_đội Type: TEXT
+Column name: id_giải_đấu Type: TEXT
+Column name: vòng_đấu Type: TEXT
+Column name: vị_trí Type: TEXT
+Column name: g Type: INTEGER
+Column name: gs Type: INTEGER
+Column name: số_lần_bị_loại_mỗi_lượt Type: INTEGER
+Column name: po Type: INTEGER
+Column name: a Type: INTEGER
+Column name: e Type: INTEGER
+Column name: dp Type: INTEGER
+Column name: tp Type: INTEGER
+Column name: pb Type: INTEGER
+Column name: sb Type: INTEGER
+Column name: cs Type: INTEGER
+Sample rows:
+[{'id_cầu_thủ': 'P001', 'năm': 2024, 'id_đội': 'T001', 'id_giải_đấu': 'L001', 'vòng_đấu': 'Vòng 1', 'vị_trí': 'P', 'g': 2, 'gs': 1, 'số_lần_bị_loại_mỗi_lượt': 0, 'po': 5, 'a': 2, 'e': 0, 'dp': 0, 'tp': 0, 'pb': 0, 'sb': 0, 'cs': 0}, {'id_cầu_thủ': 'P001', 'năm': 2024, 'id_đội': 'T002', 'id_giải_đấu': 'L001', 'vòng_đấu': 'Vòng 1', 'vị_trí': 'P', 'g': 2, 'gs': 1, 'số_lần_bị_loại_mỗi_lượt': 0, 'po': 5, 'a': 2, 'e': 0, 'dp': 0, 'tp': 0, 'pb': 0, 'sb': 0, 'cs': 0}, {'id_cầu_thủ': 'P001', 'năm': 2024, 'id_đội': 'T003', 'id_giải_đấu': 'L001', 'vòng_đấu': 'Vòng 1', 'vị_trí': 'P', 'g': 2, 'gs': 1, 'số_lần_bị_loại_mỗi_lượt': 0, 'po': 5, 'a': 2, 'e': 0, 'dp': 0, 'tp': 0, 'pb': 0, 'sb': 0, 'cs': 0}]
+--------------------------------------------------
+Table full name: thành_tích_phòng_ngự_sân_ngoài
+Foreign keys:
+    id_cầu_thủ → cầu_thủ.id_cầu_thủ
+Column name: id_cầu_thủ Type: TEXT
+Column name: năm Type: INTEGER
+Column name: thời_gian_chơi_bóng Type: INTEGER
+Column name: glf Type: INTEGER
+Column name: gcf Type: INTEGER
+Column name: grf Type: INTEGER
+Sample rows:
+[{'id_cầu_thủ': 'P001', 'năm': 2024, 'thời_gian_chơi_bóng': 1, 'glf': 30, 'gcf': 20, 'grf': 10}, {'id_cầu_thủ': 'P002', 'năm': 2024, 'thời_gian_chơi_bóng': 1, 'glf': 30, 'gcf': 20, 'grf': 10}, {'id_cầu_thủ': 'P003', 'năm': 2024, 'thời_gian_chơi_bóng': 1, 'glf': 30, 'gcf': 20, 'grf': 10}]
+--------------------------------------------------
+Table full name: thành_tích_đánh_bóng
+Foreign keys:
+    id_cầu_thủ → cầu_thủ.id_cầu_thủ
+Column name: id_cầu_thủ Type: TEXT
+Column name: năm Type: INTEGER
+Column name: thời_gian_chơi_bóng Type: INTEGER
+Column name: id_đội Type: TEXT
+Column name: id_giải_đấu Type: TEXT
+Column name: g Type: INTEGER
+Column name: ab Type: INTEGER
+Column name: r Type: INTEGER
+Column name: h Type: INTEGER
+Column name: loại_hai_người Type: INTEGER
+Column name: loại_ba_người Type: INTEGER
+Column name: hr Type: INTEGER
+Column name: rbi Type: INTEGER
+Column name: sb Type: INTEGER
+Column name: cs Type: INTEGER
+Column name: bb Type: INTEGER
+Column name: so Type: INTEGER
+Column name: ibb Type: INTEGER
+Column name: hbp Type: INTEGER
+Column name: sh Type: INTEGER
+Column name: sf Type: INTEGER
+Column name: g_idp Type: INTEGER
+Sample rows:
+[{'id_cầu_thủ': 'P001', 'năm': 2024, 'thời_gian_chơi_bóng': 1, 'id_đội': 'T001', 'id_giải_đấu': 'L001', 'g': 100, 'ab': 300, 'r': 50, 'h': 90, 'loại_hai_người': 20, 'loại_ba_người': 2, 'hr': 5, 'rbi': 60, 'sb': 15, 'cs': 5, 'bb': 30, 'so': 40, 'ibb': 2, 'hbp': 1, 'sh': 5, 'sf': 2, 'g_idp': 1}, {'id_cầu_thủ': 'P002', 'năm': 2024, 'thời_gian_chơi_bóng': 1, 'id_đội': 'T002', 'id_giải_đấu': 'L001', 'g': 100, 'ab': 300, 'r': 50, 'h': 90, 'loại_hai_người': 20, 'loại_ba_người': 2, 'hr': 5, 'rbi': 60, 'sb': 15, 'cs': 5, 'bb': 30, 'so': 40, 'ibb': 2, 'hbp': 1, 'sh': 5, 'sf': 2, 'g_idp': 1}, {'id_cầu_thủ': 'P003', 'năm': 2024, 'thời_gian_chơi_bóng': 1, 'id_đội': 'T003', 'id_giải_đấu': 'L001', 'g': 100, 'ab': 300, 'r': 50, 'h': 90, 'loại_hai_người': 20, 'loại_ba_người': 2, 'hr': 5, 'rbi': 60, 'sb': 15, 'cs': 5, 'bb': 30, 'so': 40, 'ibb': 2, 'hbp': 1, 'sh': 5, 'sf': 2, 'g_idp': 1}]
+--------------------------------------------------
+Table full name: thành_tích_đánh_bóng_sau_mùa_giải
+Foreign keys:
+    id_đội → đội.id_đội
+    id_cầu_thủ → cầu_thủ.id_cầu_thủ
+Column name: năm Type: INTEGER
+Column name: vòng_đấu Type: TEXT
+Column name: id_cầu_thủ Type: TEXT
+Column name: id_đội Type: TEXT
+Column name: id_giải_đấu Type: TEXT
+Column name: g Type: INTEGER
+Column name: ab Type: INTEGER
+Column name: r Type: INTEGER
+Column name: h Type: INTEGER
+Column name: loại_hai_người Type: INTEGER
+Column name: loại_ba_người Type: INTEGER
+Column name: hr Type: INTEGER
+Column name: rbi Type: INTEGER
+Column name: sb Type: INTEGER
+Column name: cs Type: INTEGER
+Column name: bb Type: INTEGER
+Column name: so Type: INTEGER
+Column name: ibb Type: INTEGER
+Column name: hbp Type: INTEGER
+Column name: sh Type: INTEGER
+Column name: sf Type: INTEGER
+Column name: g_idp Type: INTEGER
+Sample rows:
+[{'năm': 2024, 'vòng_đấu': 'Vòng 1', 'id_cầu_thủ': 'P001', 'id_đội': 'T001', 'id_giải_đấu': 'L001', 'g': 5, 'ab': 10, 'r': 3, 'h': 5, 'loại_hai_người': 1, 'loại_ba_người': 0, 'hr': 1, 'rbi': 2, 'sb': 1, 'cs': 0, 'bb': 1, 'so': 3, 'ibb': 0, 'hbp': 0, 'sh': 0, 'sf': 0, 'g_idp': 0}, {'năm': 2024, 'vòng_đấu': 'Vòng 1', 'id_cầu_thủ': 'P001', 'id_đội': 'T002', 'id_giải_đấu': 'L001', 'g': 5, 'ab': 10, 'r': 3, 'h': 5, 'loại_hai_người': 1, 'loại_ba_người': 0, 'hr': 1, 'rbi': 2, 'sb': 1, 'cs': 0, 'bb': 1, 'so': 3, 'ibb': 0, 'hbp': 0, 'sh': 0, 'sf': 0, 'g_idp': 0}, {'năm': 2024, 'vòng_đấu': 'Vòng 1', 'id_cầu_thủ': 'P001', 'id_đội': 'T003', 'id_giải_đấu': 'L001', 'g': 5, 'ab': 10, 'r': 3, 'h': 5, 'loại_hai_người': 1, 'loại_ba_người': 0, 'hr': 1, 'rbi': 2, 'sb': 1, 'cs': 0, 'bb': 1, 'so': 3, 'ibb': 0, 'hbp': 0, 'sh': 0, 'sf': 0, 'g_idp': 0}]
+--------------------------------------------------
+Table full name: thành_tích_đội_theo_hiệp
+Column name: năm Type: INTEGER
+Column name: id_giải_đấu Type: TEXT
+Column name: id_đội Type: TEXT
+Column name: hiệp_đấu Type: INTEGER
+Column name: id_phân_hạng Type: TEXT
+Column name: thắng_phân_hạng_hay_không Type: TEXT
+Column name: xếp_hạng Type: INTEGER
+Column name: g Type: INTEGER
+Column name: w Type: INTEGER
+Column name: l Type: INTEGER
+Sample rows:
+[{'năm': 2024, 'id_giải_đấu': 'L001', 'id_đội': 'T001', 'hiệp_đấu': 1, 'id_phân_hạng': 'E01', 'thắng_phân_hạng_hay_không': 'Không', 'xếp_hạng': 1, 'g': 20, 'w': 12, 'l': 8}, {'năm': 2024, 'id_giải_đấu': 'L001', 'id_đội': 'T002', 'hiệp_đấu': 1, 'id_phân_hạng': 'E02', 'thắng_phân_hạng_hay_không': 'Không', 'xếp_hạng': 2, 'g': 20, 'w': 12, 'l': 8}, {'năm': 2024, 'id_giải_đấu': 'L001', 'id_đội': 'T003', 'hiệp_đấu': 1, 'id_phân_hạng': 'E03', 'thắng_phân_hạng_hay_không': 'Không', 'xếp_hạng': 3, 'g': 20, 'w': 12, 'l': 8}]
+--------------------------------------------------
+Table full name: trường_đại_học
+Is referenced by:
+    cầu_thủ_của_trường_đại_học.id_trường_đại_học
+Column name: id_trường_đại_học Type: TEXT
+Column name: tên_đầy_đủ Type: TEXT
+Column name: thành_phố Type: TEXT
+Column name: tiểu_bang Type: TEXT
+Column name: quốc_gia Type: TEXT
+Sample rows:
+[{'id_trường_đại_học': 'U001', 'tên_đầy_đủ': 'ĐH Thể Thao Hà Nội', 'thành_phố': 'Hà Nội', 'tiểu_bang': 'HN', 'quốc_gia': 'Việt Nam'}, {'id_trường_đại_học': 'U002', 'tên_đầy_đủ': 'ĐH TDTT TP.HCM', 'thành_phố': 'TP.HCM', 'tiểu_bang': 'HCM', 'quốc_gia': 'Việt Nam'}, {'id_trường_đại_học': 'U003', 'tên_đầy_đủ': 'ĐH Đà Nẵng', 'thành_phố': 'Đà Nẵng', 'tiểu_bang': 'DN', 'quốc_gia': 'Việt Nam'}]
+--------------------------------------------------
+Table full name: trận_đấu_sân_nhà
+Foreign keys:
+    id_sân_vận_động → sân_vận_động.id_sân_vận_động
+    id_đội → đội.id_đội
+Column name: năm Type: INTEGER
+Column name: id_giải_đấu Type: TEXT
+Column name: id_đội Type: TEXT
+Column name: id_sân_vận_động Type: TEXT
+Column name: ngày_của_trận_đầu_tiên Type: TEXT
+Column name: ngày_của_trận_cuối_cùng Type: TEXT
+Column name: số_lượng_trận_đấu Type: INTEGER
+Column name: số_lần_mở_cửa Type: INTEGER
+Column name: số_lượng_dự_khán Type: INTEGER
+Sample rows:
+[{'năm': 2024, 'id_giải_đấu': 'L001', 'id_đội': 'T001', 'id_sân_vận_động': 'S001', 'ngày_của_trận_đầu_tiên': '2024-04-01', 'ngày_của_trận_cuối_cùng': '2024-09-30', 'số_lượng_trận_đấu': 81, 'số_lần_mở_cửa': 81, 'số_lượng_dự_khán': 200000}, {'năm': 2024, 'id_giải_đấu': 'L001', 'id_đội': 'T002', 'id_sân_vận_động': 'S002', 'ngày_của_trận_đầu_tiên': '2024-04-01', 'ngày_của_trận_cuối_cùng': '2024-09-30', 'số_lượng_trận_đấu': 81, 'số_lần_mở_cửa': 81, 'số_lượng_dự_khán': 250000}, {'năm': 2024, 'id_giải_đấu': 'L001', 'id_đội': 'T003', 'id_sân_vận_động': 'S003', 'ngày_của_trận_đầu_tiên': '2024-04-01', 'ngày_của_trận_cuối_cùng': '2024-09-30', 'số_lượng_trận_đấu': 81, 'số_lần_mở_cửa': 81, 'số_lượng_dự_khán': 300000}]
+--------------------------------------------------
+Table full name: đại_lộ_danh_vọng
+Foreign keys:
+    id_cầu_thủ → cầu_thủ.id_cầu_thủ
+Column name: id_cầu_thủ Type: TEXT
+Column name: id_năm Type: INTEGER
+Column name: được_bầu_chọn_bởi Type: TEXT
+Column name: số_lượng_bỏ_phiếu Type: INTEGER
+Column name: số_lượng_phiếu_cần Type: INTEGER
+Column name: số_lượng_phiếu_bầu Type: INTEGER
+Column name: được_lựa_chọn_hay_không Type: TEXT
+Column name: hạng_mục Type: TEXT
+Column name: lưu_ý_cần_thiết Type: TEXT
+Sample rows:
+[{'id_cầu_thủ': 'P001', 'id_năm': 2024, 'được_bầu_chọn_bởi': 'BBWAA', 'số_lượng_bỏ_phiếu': 400, 'số_lượng_phiếu_cần': 300, 'số_lượng_phiếu_bầu': 350, 'được_lựa_chọn_hay_không': 'Không', 'hạng_mục': 'Player', 'lưu_ý_cần_thiết': 'Không'}, {'id_cầu_thủ': 'P002', 'id_năm': 2024, 'được_bầu_chọn_bởi': 'BBWAA', 'số_lượng_bỏ_phiếu': 410, 'số_lượng_phiếu_cần': 300, 'số_lượng_phiếu_bầu': 360, 'được_lựa_chọn_hay_không': 'Không', 'hạng_mục': 'Player', 'lưu_ý_cần_thiết': 'Không'}, {'id_cầu_thủ': 'P003', 'id_năm': 2024, 'được_bầu_chọn_bởi': 'BBWAA', 'số_lượng_bỏ_phiếu': 420, 'số_lượng_phiếu_cần': 300, 'số_lượng_phiếu_bầu': 370, 'được_lựa_chọn_hay_không': 'Không', 'hạng_mục': 'Player', 'lưu_ý_cần_thiết': 'Không'}]
+--------------------------------------------------
+Table full name: đội
+Is referenced by:
+    thành_tích_huấn_luyện_viên.id_đội
+    thành_tích_huấn_luyện_viên_theo_hiệp.id_đội
+    trận_đấu_sân_nhà.id_đội
+    thành_tích_đánh_bóng_sau_mùa_giải.id_đội
+    lần_xuất_hiện.id_đội
+Column name: năm Type: INTEGER
+Column name: id_giải_đấu Type: TEXT
+Column name: id_đội Type: TEXT
+Column name: id_nhượng_quyền_thương_mại Type: TEXT
+Column name: id_phân_hạng Type: TEXT
+Column name: thứ_hạng Type: INTEGER
+Column name: g Type: INTEGER
+Column name: số_lượng_trận_đấu_sân_nhà Type: INTEGER
+Column name: w Type: INTEGER
+Column name: l Type: INTEGER
+Column name: thắng_phân_hạng_hay_không Type: TEXT
+Column name: thắng_ở_giải_vô_địch_thế_giới_hay_không Type: TEXT
+Column name: thắng_ở_giải_bóng_chày_hay_không Type: TEXT
+Column name: thắng_ở_world_series_hay_không Type: TEXT
+Column name: r Type: INTEGER
+Column name: ab Type: INTEGER
+Column name: h Type: INTEGER
+Column name: loại_hai_người Type: INTEGER
+Column name: loại_ba_người Type: INTEGER
+Column name: hr Type: INTEGER
+Column name: bb Type: INTEGER
+Column name: so Type: INTEGER
+Column name: sb Type: INTEGER
+Column name: cs Type: INTEGER
+Column name: hbp Type: INTEGER
+Column name: sf Type: INTEGER
+Column name: ra Type: INTEGER
+Column name: er Type: INTEGER
+Column name: era Type: INTEGER
+Column name: cg Type: INTEGER
+Column name: sho Type: INTEGER
+Column name: sv Type: INTEGER
+Column name: ipouts Type: INTEGER
+Column name: ha Type: INTEGER
+Column name: hra Type: INTEGER
+Column name: bba Type: INTEGER
+Column name: soa Type: INTEGER
+Column name: e Type: INTEGER
+Column name: dp Type: INTEGER
+Column name: fp Type: INTEGER
+Column name: tên Type: TEXT
+Column name: sân_vận_động Type: TEXT
+Column name: số_lượng_dự_khán Type: INTEGER
+Column name: bpf Type: INTEGER
+Column name: ppf Type: INTEGER
+Column name: id_đội_trong_br Type: TEXT
+Column name: id_đội_trong_lahman45 Type: TEXT
+Column name: id_đội_trong_retro Type: TEXT
+Sample rows:
+[{'năm': 2024, 'id_giải_đấu': 'L001', 'id_đội': 'T001', 'id_nhượng_quyền_thương_mại': 'F001', 'id_phân_hạng': 'E01', 'thứ_hạng': 1, 'g': 162, 'số_lượng_trận_đấu_sân_nhà': 81, 'w': 80, 'l': 82, 'thắng_phân_hạng_hay_không': 'Không', 'thắng_ở_giải_vô_địch_thế_giới_hay_không': 'Không', 'thắng_ở_giải_bóng_chày_hay_không': 'Không', 'thắng_ở_world_series_hay_không': 'Không', 'r': 700, 'ab': 5400, 'h': 1500, 'loại_hai_người': 300, 'loại_ba_người': 20, 'hr': 180, 'bb': 500, 'so': 1200, 'sb': 80, 'cs': 30, 'hbp': 50, 'sf': 5, 'ra': 650, 'er': 600, 'era': 3, 'cg': 5, 'sho': 40, 'sv': 35, 'ipouts': 1458, 'ha': 1400, 'hra': 150, 'bba': 400, 'soa': 1200, 'e': 80, 'dp': 120, 'fp': 0.98, 'tên': 'Rồng Đỏ', 'sân_vận_động': 'S001', 'số_lượng_dự_khán': 200000, 'bpf': 100, 'ppf': 100, 'id_đội_trong_br': 'T001B', 'id_đội_trong_lahman45': 'T001L', 'id_đội_trong_retro': 'T001R'}, {'năm': 2024, 'id_giải_đấu': 'L001', 'id_đội': 'T002', 'id_nhượng_quyền_thương_mại': 'F002', 'id_phân_hạng': 'E02', 'thứ_hạng': 2, 'g': 162, 'số_lượng_trận_đấu_sân_nhà': 81, 'w': 75, 'l': 87, 'thắng_phân_hạng_hay_không': 'Không', 'thắng_ở_giải_vô_địch_thế_giới_hay_không': 'Không', 'thắng_ở_giải_bóng_chày_hay_không': 'Không', 'thắng_ở_world_series_hay_không': 'Không', 'r': 700, 'ab': 5400, 'h': 1500, 'loại_hai_người': 300, 'loại_ba_người': 20, 'hr': 180, 'bb': 500, 'so': 1200, 'sb': 80, 'cs': 30, 'hbp': 50, 'sf': 5, 'ra': 650, 'er': 600, 'era': 3, 'cg': 5, 'sho': 40, 'sv': 35, 'ipouts': 1458, 'ha': 1400, 'hra': 150, 'bba': 400, 'soa': 1200, 'e': 80, 'dp': 120, 'fp': 0.98, 'tên': 'Sư Tử Vàng', 'sân_vận_động': 'S002', 'số_lượng_dự_khán': 250000, 'bpf': 100, 'ppf': 100, 'id_đội_trong_br': 'T002B', 'id_đội_trong_lahman45': 'T002L', 'id_đội_trong_retro': 'T002R'}, {'năm': 2024, 'id_giải_đấu': 'L001', 'id_đội': 'T003', 'id_nhượng_quyền_thương_mại': 'F003', 'id_phân_hạng': 'E03', 'thứ_hạng': 3, 'g': 162, 'số_lượng_trận_đấu_sân_nhà': 81, 'w': 70, 'l': 92, 'thắng_phân_hạng_hay_không': 'Không', 'thắng_ở_giải_vô_địch_thế_giới_hay_không': 'Không', 'thắng_ở_giải_bóng_chày_hay_không': 'Không', 'thắng_ở_world_series_hay_không': 'Không', 'r': 700, 'ab': 5400, 'h': 1500, 'loại_hai_người': 300, 'loại_ba_người': 20, 'hr': 180, 'bb': 500, 'so': 1200, 'sb': 80, 'cs': 30, 'hbp': 50, 'sf': 5, 'ra': 650, 'er': 600, 'era': 3, 'cg': 5, 'sho': 40, 'sv': 35, 'ipouts': 1458, 'ha': 1400, 'hra': 150, 'bba': 400, 'soa': 1200, 'e': 80, 'dp': 120, 'fp': 0.98, 'tên': 'Hổ Xanh', 'sân_vận_động': 'S003', 'số_lượng_dự_khán': 300000, 'bpf': 100, 'ppf': 100, 'id_đội_trong_br': 'T003B', 'id_đội_trong_lahman45': 'T003L', 'id_đội_trong_retro': 'T003R'}]
+--------------------------------------------------
+External knowledge that might be helpful: 
+**Similar SQL Examples:**
+1. Question: cho biết số lượng các đánh giá với nhiều hơn 3 sao
+   SQL: select count ( * ) from xếp hạng đánh giá where số sao đánh giá > 3
+   Database: movie_1
+2. Question: những đội nào có nhiều hơn 3 lần bị loại
+   SQL: select đội from lần bị loại group by đội having count ( * ) > 3
+   Database: wrestler
+3. Question: có bao nhiêu đánh giá phim có nhiều hơn 3 sao
+   SQL: select count ( * ) from xếp hạng đánh giá where số sao đánh giá > 3
+   Database: movie_1
+4. Question: cho biết id của các sản phẩm đã được đặt hàng nhiều hơn 3 lần hoặc có tổng số tiền mua vào nhiều hơn 80000
+   SQL: select id sản phẩm from mặt hàng được đặt group by id sản phẩm having count ( * ) > 3 union select id sản phẩm from nhà cung cấp sản phẩm group by id sản phẩm having sum ( tổng số lượng đã mua ) > 80000
+   Database: department_store

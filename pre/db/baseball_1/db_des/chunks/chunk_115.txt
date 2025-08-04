@@ -1,0 +1,3 @@
+- số trận không cho đối thủ ghi điểm (sho): số trận không cho đối thủ ghi điểm
+- số trận cứu thua thành công (sv): số trận cứu thua thành công
+- tổng số lần out khi ném (ipouts): tổng số lần out khi ném

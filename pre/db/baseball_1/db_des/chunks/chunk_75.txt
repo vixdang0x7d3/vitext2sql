@@ -1,0 +1,3 @@
+- hiệp đấu (hiệp_đấu): hiệp đấu ghi nhận thống kê
+- số trận tham gia (g): số trận tham gia
+- số trận thắng (w): số trận thắng

@@ -1,0 +1,3 @@
+- số trận tham gia (g): số trận tham gia
+- số lượng trận đấu sân nhà (số_lượng_trận_đấu_sân_nhà): số trận đấu sân nhà
+- số trận thắng (w): số trận thắng

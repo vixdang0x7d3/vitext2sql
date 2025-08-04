@@ -1,0 +1,3 @@
+- chỉ số phòng ngự theo vùng (zr): chỉ số phòng ngự theo vùng
+bảng: thành tích phòng ngự sân ngoài
+- mã định danh cầu thủ (id_cầu_thủ): mã định danh của cầu thủ

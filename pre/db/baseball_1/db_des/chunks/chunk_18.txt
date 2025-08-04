@@ -1,0 +1,3 @@
+- số trận ở vị trí second base (g_2b): số trận ở vị trí second base
+- số trận ở vị trí third base (g_3b): số trận ở vị trí third base
+- số trận ở vị trí shortstop (g_ss): số trận ở vị trí shortstop

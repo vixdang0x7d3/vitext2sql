@@ -1,0 +1,14 @@
+
+**Relevant DB description Concepts:**
+1. - số lần ném bóng hỏng (wp): wild pitches – số lần ném bóng hỏng
+- số lần đối thủ cướp base thành công (sb): số lần đối thủ cướp base thành công
+- số lần bắt được đối thủ khi cướp base (cs): số lần bắt được đối thủ khi cướp base
+2. - số lần đi bộ cố ý (ibb): đi bộ cố ý
+- số lần bị bóng ném trúng người (hbp): bị bóng ném trúng người
+- số lần đánh hi sinh (sh): đánh hi sinh (bunt)
+3. - số lần loại đối thủ bằng strikeout (soa): số lần loại đối thủ bằng strikeout
+- số lỗi phòng ngự (e): số lỗi phòng ngự
+- số pha loại hai cầu thủ (dp): số pha loại 2 cầu thủ
+4. - số trận ở vị trí pitcher (g_p): số trận ở vị trí pitcher
+- số trận ở vị trí catcher (g_c): số trận ở vị trí catcher
+- số trận ở vị trí first base (g_1b): số trận ở vị trí first base

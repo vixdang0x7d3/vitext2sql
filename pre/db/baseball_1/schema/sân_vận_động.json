@@ -1,0 +1,62 @@
+{
+    "table_name": "sân_vận_động",
+    "table_fullname": "sân_vận_động",
+    "column_names": [
+        "id_sân_vận_động",
+        "tên_sân_vận_động",
+        "tên_gọi_khác_của_sân_vận_động",
+        "thành_phố",
+        "tiểu_bang",
+        "quốc_gia"
+    ],
+    "column_types": [
+        "TEXT",
+        "TEXT",
+        "TEXT",
+        "TEXT",
+        "TEXT",
+        "TEXT"
+    ],
+    "description": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+    ],
+    "primary_keys": [],
+    "foreign_keys": [],
+    "is_referenced_by": [
+        {
+            "from_table": "trận_đấu_sân_nhà",
+            "from_column": "id_sân_vận_động"
+        }
+    ],
+    "sample_rows": [
+        {
+            "id_sân_vận_động": "S001",
+            "tên_sân_vận_động": "Sân Rồng",
+            "tên_gọi_khác_của_sân_vận_động": "Dragon Field",
+            "thành_phố": "Hà Nội",
+            "tiểu_bang": "HN",
+            "quốc_gia": "Việt Nam"
+        },
+        {
+            "id_sân_vận_động": "S002",
+            "tên_sân_vận_động": "Sân Sư Tử",
+            "tên_gọi_khác_của_sân_vận_động": "Lion Stadium",
+            "thành_phố": "TP.HCM",
+            "tiểu_bang": "HCM",
+            "quốc_gia": "Việt Nam"
+        },
+        {
+            "id_sân_vận_động": "S003",
+            "tên_sân_vận_động": "Sân Hổ",
+            "tên_gọi_khác_của_sân_vận_động": "Tiger Arena",
+            "thành_phố": "Đà Nẵng",
+            "tiểu_bang": "DN",
+            "quốc_gia": "Việt Nam"
+        }
+    ]
+}

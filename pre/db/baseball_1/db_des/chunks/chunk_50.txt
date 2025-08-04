@@ -1,0 +1,3 @@
+- vị trí (vị_trí): vị trí phòng ngự của cầu thủ
+- số trận tham gia (g): số trận tham gia
+- số trận bắt đầu (gs): số trận bắt đầu ở vai trò chính

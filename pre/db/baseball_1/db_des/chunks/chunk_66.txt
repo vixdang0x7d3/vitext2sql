@@ -1,0 +1,3 @@
+bảng: trận đấu sân nhà
+- năm (năm): năm diễn ra các trận đấu
+- mã định danh giải đấu (id_giải_đấu): mã định danh của giải đấu

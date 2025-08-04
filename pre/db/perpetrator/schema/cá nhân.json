@@ -1,0 +1,58 @@
+{
+    "table_name": "cá nhân",
+    "table_fullname": "cá nhân",
+    "column_names": [
+        "id cá nhân",
+        "tên",
+        "chiều cao",
+        "cân nặng",
+        "quê quán"
+    ],
+    "column_types": [
+        "INTEGER",
+        "TEXT",
+        "REAL",
+        "REAL",
+        "TEXT"
+    ],
+    "description": [
+        "",
+        "",
+        "",
+        "",
+        ""
+    ],
+    "primary_keys": [
+        "id cá nhân"
+    ],
+    "foreign_keys": [],
+    "is_referenced_by": [
+        {
+            "from_table": "tội phạm",
+            "from_column": "id cá nhân"
+        }
+    ],
+    "sample_rows": [
+        {
+            "id cá nhân": 1,
+            "tên": "Nguyễn Văn A",
+            "chiều cao": 170.5,
+            "cân nặng": 65.2,
+            "quê quán": "Hà Nội"
+        },
+        {
+            "id cá nhân": 2,
+            "tên": "Trần Thị B",
+            "chiều cao": 162.0,
+            "cân nặng": 52.8,
+            "quê quán": "Hồ Chí Minh"
+        },
+        {
+            "id cá nhân": 3,
+            "tên": "Lê Văn C",
+            "chiều cao": 175.3,
+            "cân nặng": 70.1,
+            "quê quán": "Đà Nẵng"
+        }
+    ]
+}

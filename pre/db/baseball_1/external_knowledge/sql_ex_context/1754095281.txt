@@ -1,0 +1,13 @@
+**Similar SQL Examples:**
+1. Question: tìm tên của tất cả các câu lạc bộ
+   SQL: select tên câu lạc bộ from câu lạc bộ
+   Database: club_1
+2. Question: những cầu thủ nào không có hồ sơ tử vong cho biết họ và tên của những cầu thủ này
+   SQL: select tên , họ from cầu thủ where năm mất = ""
+   Database: baseball_1
+3. Question: tìm tên đầy đủ và id của trường đại học có nhiều cầu thủ bóng chày nhất
+   SQL: select t1.tên đầy đủ , t1.id trường đại học from trường đại học as t1 join cầu thủ của trường đại học as t2 on t1.id trường đại học = t2.id trường đại học group by t1.id trường đại học order by count ( * ) desc limit 1
+   Database: baseball_1
+4. Question: cho biết họ và tên của những cầu thủ không có hồ sơ tử vong
+   SQL: select tên , họ from cầu thủ where năm mất = ""
+   Database: baseball_1

@@ -1,0 +1,3 @@
+- mã định danh giải đấu (id_giải_đấu): mã định danh của giải đấu
+- số lần xuất hiện (gp): số lần xuất hiện trong giải all-star năm đó
+- vị trí bắt đầu (vị_trí_bắt_đầu): vị trí cầu thủ bắt đầu trận all-star ví dụ: p cf

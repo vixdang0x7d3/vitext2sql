@@ -1,0 +1,3 @@
+- số lần bị loại khi đánh trượt (so): số lần bị loại khi đánh trượt
+- số lần cướp base thành công (sb): số lần cướp base thành công
+- số lần bị bắt khi cướp base (cs): số lần bị bắt khi cướp base

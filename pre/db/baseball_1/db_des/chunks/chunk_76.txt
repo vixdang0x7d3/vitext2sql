@@ -1,0 +1,3 @@
+- số trận thua (l): số trận thua
+- thứ hạng (thứ_hạng): thứ hạng đội khi xét theo hiệp đấu
+bảng: thành tích ném bóng

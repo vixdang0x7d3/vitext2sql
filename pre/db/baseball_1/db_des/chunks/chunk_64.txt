@@ -1,0 +1,3 @@
+- số lượng bỏ phiếu (số_lượng_bỏ_phiếu): số phiếu bầu nhận được
+- số lượng phiếu cần (số_lượng_phiếu_cần): số phiếu cần để được chọn
+- số lượng phiếu bầu (số_lượng_phiếu_bầu): tổng số phiếu bầu

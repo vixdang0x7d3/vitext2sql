@@ -1,0 +1,3 @@
+- số điểm đối thủ ghi mà không nhờ lỗi (er): số điểm đối thủ ghi mà không nhờ lỗi
+- trung bình số điểm thua mỗi 9 hiệp (era): trung bình số điểm thua/9 hiệp
+- số trận ném trọn vẹn (cg): số trận ném trọn vẹn

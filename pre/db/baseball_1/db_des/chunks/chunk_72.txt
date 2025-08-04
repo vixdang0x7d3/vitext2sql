@@ -1,0 +1,3 @@
+- số trận thua (l): số trận thua
+- thứ hạng (thứ_hạng): thứ hạng của đội khi kết thúc mùa
+- huấn luyện viên kiêm cầu thủ (plyr_mgr): huấn luyện viên kiêm cầu thủ (y/n)

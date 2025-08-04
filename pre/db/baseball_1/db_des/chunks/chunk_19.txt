@@ -1,0 +1,3 @@
+- số trận ở vị trí left field (g_lf): số trận ở vị trí left field
+- số trận ở vị trí center field (g_cf): số trận ở vị trí center field
+- số trận ở vị trí right field (g_rf): số trận ở vị trí right field

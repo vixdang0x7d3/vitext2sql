@@ -1,0 +1,63 @@
+{
+    "table_name": "giải_thưởng_dành_cho_cầu_thủ",
+    "table_fullname": "giải_thưởng_dành_cho_cầu_thủ",
+    "column_names": [
+        "id_cầu_thủ",
+        "id_giải_thưởng",
+        "năm",
+        "id_giải_đấu",
+        "số_trận_hoà",
+        "ghi_chú"
+    ],
+    "column_types": [
+        "TEXT",
+        "TEXT",
+        "INTEGER",
+        "TEXT",
+        "TEXT",
+        "TEXT"
+    ],
+    "description": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+    ],
+    "primary_keys": [],
+    "foreign_keys": [
+        {
+            "from_column": "id_cầu_thủ",
+            "to_table": "cầu_thủ",
+            "to_column": "id_cầu_thủ"
+        }
+    ],
+    "is_referenced_by": [],
+    "sample_rows": [
+        {
+            "id_cầu_thủ": "P001",
+            "id_giải_thưởng": "MVP",
+            "năm": 2024,
+            "id_giải_đấu": "L001",
+            "số_trận_hoà": "0",
+            "ghi_chú": "Không có"
+        },
+        {
+            "id_cầu_thủ": "P002",
+            "id_giải_thưởng": "GoldenBat",
+            "năm": 2024,
+            "id_giải_đấu": "L001",
+            "số_trận_hoà": "0",
+            "ghi_chú": "Không có"
+        },
+        {
+            "id_cầu_thủ": "P003",
+            "id_giải_thưởng": "SilverGlove",
+            "năm": 2024,
+            "id_giải_đấu": "L001",
+            "số_trận_hoà": "0",
+            "ghi_chú": "Không có"
+        }
+    ]
+}

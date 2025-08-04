@@ -1,0 +1,3 @@
+- mã định danh cầu thủ (id_cầu_thủ): mã định danh của cầu thủ
+- mã năm (id_năm): năm bình chọn vào đại lộ danh vọng
+- được bầu chọn bởi (được_bầu_chọn_bởi): tổ chức hoặc nhóm bầu chọn

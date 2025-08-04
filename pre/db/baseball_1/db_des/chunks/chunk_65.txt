@@ -1,0 +1,3 @@
+- được lựa chọn hay không (được_lựa_chọn_hay_không): cầu thủ có được chọn hay không
+- hạng mục (hạng_mục): hạng mục bầu chọn (ví dụ: cầu thủ huấn luyện viên)
+- lưu ý cần thiết (lưu_ý_cần_thiết): ghi chú bổ sung

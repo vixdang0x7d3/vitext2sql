@@ -1,0 +1,3 @@
+- quốc gia (quốc_gia): quốc gia nơi trường tọa lạc
+bảng: giải đấu sau mùa giải
+- năm (năm): năm của mùa giải sau

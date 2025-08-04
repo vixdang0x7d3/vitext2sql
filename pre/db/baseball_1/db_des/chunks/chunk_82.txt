@@ -1,0 +1,3 @@
+- số cú home run của đối thủ (hr): số cú home run của đối thủ
+- số lần đi bộ của đối thủ (bb): số lần đi bộ của đối thủ
+- số lần loại đối thủ bằng strikeout (so): số lần loại đối thủ bằng strikeout

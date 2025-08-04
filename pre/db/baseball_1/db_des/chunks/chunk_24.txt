@@ -1,0 +1,3 @@
+- mã định danh cầu thủ (id_cầu_thủ): mã định danh của cầu thủ
+- mã định danh giải thưởng (id_giải_thưởng): mã định danh của giải thưởng
+- năm (năm): năm trao giải

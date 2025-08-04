@@ -1,4 +1,4 @@
-# Overview
+## Overview
 
 Automated text2sql system for generating and executing SQL queries on SQLite databases.
 

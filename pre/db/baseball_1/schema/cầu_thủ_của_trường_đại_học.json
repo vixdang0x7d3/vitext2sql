@@ -1,0 +1,50 @@
+{
+    "table_name": "cầu_thủ_của_trường_đại_học",
+    "table_fullname": "cầu_thủ_của_trường_đại_học",
+    "column_names": [
+        "id_cầu_thủ",
+        "id_trường_đại_học",
+        "năm"
+    ],
+    "column_types": [
+        "TEXT",
+        "TEXT",
+        "INTEGER"
+    ],
+    "description": [
+        "",
+        "",
+        ""
+    ],
+    "primary_keys": [],
+    "foreign_keys": [
+        {
+            "from_column": "id_trường_đại_học",
+            "to_table": "trường_đại_học",
+            "to_column": "id_trường_đại_học"
+        },
+        {
+            "from_column": "id_cầu_thủ",
+            "to_table": "cầu_thủ",
+            "to_column": "id_cầu_thủ"
+        }
+    ],
+    "is_referenced_by": [],
+    "sample_rows": [
+        {
+            "id_cầu_thủ": "P001",
+            "id_trường_đại_học": "U001",
+            "năm": 2010
+        },
+        {
+            "id_cầu_thủ": "P002",
+            "id_trường_đại_học": "U002",
+            "năm": 2010
+        },
+        {
+            "id_cầu_thủ": "P003",
+            "id_trường_đại_học": "U003",
+            "năm": 2010
+        }
+    ]
+}
