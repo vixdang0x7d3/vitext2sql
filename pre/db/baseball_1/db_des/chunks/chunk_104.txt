@@ -1,3 +1,0 @@
-- số trận thua (thua): số trận thua của đội thua cuộc
-- số trận hòa (hoà): số trận hòa
-bảng: đội

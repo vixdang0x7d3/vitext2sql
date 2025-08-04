@@ -1,3 +1,0 @@
-- số lần loại đối thủ mỗi lượt (số_lần_bị_loại_mỗi_lượt): số lần loại đối thủ mỗi lượt
-- số lần loại cầu thủ đối phương trực tiếp (po): số lần loại cầu thủ đối phương trực tiếp
-- số lần hỗ trợ loại cầu thủ đối phương (a): số lần hỗ trợ loại cầu thủ đối phương

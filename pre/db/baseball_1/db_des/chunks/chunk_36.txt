@@ -1,3 +1,0 @@
-- số lần cướp base thành công (sb): số lần cướp base thành công
-- số lần bị bắt khi cướp base (cs): số lần bị bắt khi cướp base
-- số lần đi bộ (bb): số lần đi bộ

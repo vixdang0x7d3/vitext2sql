@@ -1,3 +1,0 @@
-- số lượng dự khán (số_lượng_dự_khán): số lượng khán giả tham dự
-- chỉ số ảnh hưởng sân nhà đến đánh bóng (bpf): batting park factor – chỉ số ảnh hưởng sân nhà đến đánh bóng
-- chỉ số ảnh hưởng sân nhà đến ném bóng (ppf): pitching park factor – chỉ số ảnh hưởng sân nhà đến ném bóng

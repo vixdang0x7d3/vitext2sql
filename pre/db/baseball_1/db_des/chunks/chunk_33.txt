@@ -1,3 +1,0 @@
-- mã định danh giải đấu (id_giải_đấu): mã định danh của giải đấu
-- số trận tham gia (g): số trận tham gia
-- số lượt đánh chính thức (ab): số lượt đánh chính thức

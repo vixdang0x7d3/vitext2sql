@@ -1,3 +1,0 @@
-- số lần bị bắt khi cướp base (cs): số lần bị bắt khi cướp base
-- số lần đi bộ (bb): số lần đi bộ
-- số lần bị loại khi đánh trượt (so): số lần bị loại khi đánh trượt

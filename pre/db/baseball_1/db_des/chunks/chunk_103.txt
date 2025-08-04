@@ -1,3 +1,0 @@
-- mã định danh đội thua cuộc (id_đội_thua_cuộc): mã định danh của đội thua cuộc
-- mã giải đấu của đội thua cuộc (id_đội_thua_cuộc_tại_giải_đấu): mã giải đấu của đội thua cuộc
-- số trận thắng (thắng): số trận thắng của đội chiến thắng

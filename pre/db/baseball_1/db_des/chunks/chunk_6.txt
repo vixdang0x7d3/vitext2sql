@@ -1,3 +1,0 @@
-- ngày mất (ngày_mất): ngày mất của cầu thủ (nếu có)
-- đất nước nơi mất (đất_nước_nơi_mất): đất nước nơi cầu thủ mất (nếu có)
-- tiểu bang nơi mất (tiểu_bang_nơi_mất): tiểu bang nơi cầu thủ mất (nếu có)

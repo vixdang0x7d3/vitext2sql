@@ -1,3 +1,0 @@
-- số trận ở vị trí pitcher (g_p): số trận ở vị trí pitcher
-- số trận ở vị trí catcher (g_c): số trận ở vị trí catcher
-- số trận ở vị trí first base (g_1b): số trận ở vị trí first base

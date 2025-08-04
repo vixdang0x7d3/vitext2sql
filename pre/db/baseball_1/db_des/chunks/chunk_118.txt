@@ -1,3 +1,0 @@
-- tỉ lệ phòng ngự thành công (fp): fielding percentage – tỉ lệ phòng ngự thành công
-- tên (tên): tên đội
-- sân vận động (sân_vận_động): tên sân vận động

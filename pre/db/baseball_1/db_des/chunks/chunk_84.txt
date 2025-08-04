@@ -1,3 +1,0 @@
-- số lần ném bóng hỏng (wp): số lần ném bóng hỏng
-- số lần ném trúng batter đối thủ (hbp): số lần ném trúng batter đối thủ
-- lỗi di chuyển của pitcher (bk): lỗi di chuyển của pitcher

@@ -1,3 +1,0 @@
-- số điểm tối đa (số_điểm_tối_đa): số điểm tối đa có thể đạt được
-- lượt bình chọn đầu tiên (lượt_bình_chọn_đầu_tiên): số lượt bình chọn đứng đầu
-bảng: bình chọn giải thưởng dành cho cầu thủ

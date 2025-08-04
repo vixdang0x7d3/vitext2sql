@@ -1,3 +1,0 @@
-- số lượng trận đấu (số_lượng_trận_đấu): số trận đấu trong giải all-star
-- mã định danh trận đấu (id_trận_đấu): mã định danh của trận all-star mà cầu thủ tham gia
-- mã định danh đội (id_đội): mã định danh của đội

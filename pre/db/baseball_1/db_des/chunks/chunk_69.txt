@@ -1,3 +1,0 @@
-- số lượng dự khán (số_lượng_dự_khán): số lượng khán giả tham dự
-bảng: thành tích huấn luyện viên
-- mã định danh cầu thủ (id_cầu_thủ): mã định danh của huấn luyện viên

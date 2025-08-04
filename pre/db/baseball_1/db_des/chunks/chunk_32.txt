@@ -1,3 +1,0 @@
-- năm (năm): năm ghi nhận thành tích
-- thời gian chơi bóng (thời_gian_chơi_bóng): số mùa hoặc số đội cầu thủ tham gia trong năm đó
-- mã định danh đội (id_đội): mã định danh của đội

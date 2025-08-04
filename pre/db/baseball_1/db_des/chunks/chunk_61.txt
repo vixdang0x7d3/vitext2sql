@@ -1,3 +1,0 @@
-- số pha loại hai cầu thủ (dp): số pha loại 2 cầu thủ
-- số pha loại ba cầu thủ (tp): triple plays – số pha loại 3 cầu thủ
-- số bóng catcher để lọt qua (pb): số bóng catcher để lọt qua

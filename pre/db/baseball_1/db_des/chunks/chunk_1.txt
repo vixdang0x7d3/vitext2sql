@@ -1,3 +1,0 @@
-bảng: nhượng quyền thương mại của các đội
-- mã định danh của nhượng quyền (id_nhượng_quyền_thương_mại): mã định danh của nhượng quyền (franchise)
-- tên nhượng quyền thương mại (tên_nhượng_quyền_thương_mại): tên thương hiệu hoặc nhượng quyền của đội

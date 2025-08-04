@@ -1,3 +1,0 @@
-bảng: thành tích phòng ngự
-- mã định danh cầu thủ (id_cầu_thủ): mã định danh của cầu thủ
-- năm (năm): năm ghi nhận thành tích

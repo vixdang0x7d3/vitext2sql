@@ -1,3 +1,0 @@
-- số lần loại đối thủ bằng strikeout (soa): số lần loại đối thủ bằng strikeout
-- số lỗi phòng ngự (e): số lỗi phòng ngự
-- số pha loại hai cầu thủ (dp): số pha loại 2 cầu thủ

@@ -1,3 +1,0 @@
-- mã định danh đội (id_đội): mã định danh của đội
-- mã định danh sân vận động (id_sân_vận_động): mã định danh của sân vận động
-- ngày của trận đầu tiên (ngày_của_trận_đầu_tiên): ngày diễn ra trận đầu tiên

@@ -1,3 +1,0 @@
-- hoạt động (hoạt_động): trạng thái hoạt động (năm hoặc trạng thái)
-- hiệp hội liên kết ở khu vực bắc mỹ (na_assoc): hiệp hội liên kết ở khu vực bắc mỹ (north america association)
-bảng: cầu thủ

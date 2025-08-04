@@ -1,3 +1,0 @@
-- mã định danh giải đấu (id_giải_đấu): mã định danh của giải đấu
-- vòng đấu (vòng_đấu): vòng đấu trong mùa giải sau
-- vị trí (vị_trí): vị trí phòng ngự của cầu thủ

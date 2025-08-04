@@ -1,3 +1,0 @@
-- số lần đi bộ cố ý của đối thủ (ibb): đi bộ cố ý của đối thủ
-- số lần ném bóng hỏng (wp): số lần ném bóng hỏng
-- số lần ném trúng batter đối thủ (hbp): số lần ném trúng batter đối thủ

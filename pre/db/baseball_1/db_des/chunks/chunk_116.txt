@@ -1,3 +1,0 @@
-- số cú đánh trúng của đối thủ (ha): số cú đánh trúng của đối thủ
-- số cú home run của đối thủ (hra): số cú home run của đối thủ
-- số lần đi bộ của đối thủ (bba): số lần đi bộ của đối thủ

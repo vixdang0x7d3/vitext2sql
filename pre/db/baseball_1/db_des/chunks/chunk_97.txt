@@ -1,3 +1,0 @@
-- số lần đối thủ đánh dẫn đến double play (g_idp): số lần đối thủ đánh dẫn đến double play
-bảng: lương
-- năm (năm): năm ghi nhận lương

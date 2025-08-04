@@ -1,3 +1,0 @@
-- số lần bị bóng ném trúng người (hbp): bị bóng ném trúng người
-- số lần đánh hi sinh để đồng đội ghi điểm (sf): đánh hi sinh để đồng đội ghi điểm
-- số điểm bị đối thủ ghi (ra): số điểm bị đối thủ ghi

@@ -1,3 +1,0 @@
-- tên đệm (tên_đệm): tên đệm của cầu thủ
-- cân nặng (cân_nặng): cân nặng của cầu thủ
-- chiều cao (chiều_cao): chiều cao của cầu thủ

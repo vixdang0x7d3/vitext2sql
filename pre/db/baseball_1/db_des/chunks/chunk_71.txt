@@ -1,3 +1,0 @@
-- ở mùa giải (ở_mùa_giải): 1 nếu dẫn dắt mùa chính 0 nếu không
-- số trận tham gia (g): số trận tham gia
-- số trận thắng (w): số trận thắng

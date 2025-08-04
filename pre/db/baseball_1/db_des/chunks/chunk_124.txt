@@ -1,3 +1,0 @@
-- số trận thắng (w): số trận thắng
-- số trận thua (l): số trận thua
-bảng: sân vận động

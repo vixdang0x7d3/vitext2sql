@@ -1,3 +1,0 @@
-- mã đội trong baseball reference (id_đội_trong_br): mã đội trong baseball reference
-- mã đội trong lahman 4 5 (id_đội_trong_lahman45): mã đội trong lahman 4 5
-- mã đội trong retrosheet (id_đội_trong_retro): mã đội trong retrosheet

@@ -1,3 +1,0 @@
-bảng: giải đấu của tất cả các ngôi sao
-- mã định danh cầu thủ (id_cầu_thủ): mã định danh của cầu thủ
-- năm (năm): năm diễn ra giải đấu all-star

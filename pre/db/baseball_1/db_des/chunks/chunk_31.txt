@@ -1,3 +1,0 @@
-- lượt bình chọn đầu tiên (lượt_bình_chọn_đầu_tiên): số lượt bình chọn đứng đầu
-bảng: thành tích đánh bóng
-- mã định danh cầu thủ (id_cầu_thủ): mã định danh của cầu thủ

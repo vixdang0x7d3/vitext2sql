@@ -1,3 +1,0 @@
-- số lần đi bộ cố ý (ibb): đi bộ cố ý
-- số lần bị bóng ném trúng người (hbp): bị bóng ném trúng người
-- số lần đánh hi sinh (sh): đánh hi sinh (bunt)

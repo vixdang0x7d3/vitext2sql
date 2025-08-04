@@ -1,3 +1,0 @@
-- thành phố (thành_phố): thành phố nơi sân tọa lạc
-- tiểu bang (tiểu_bang): tiểu bang nơi sân tọa lạc
-- quốc gia (quốc_gia): quốc gia nơi sân tọa lạc

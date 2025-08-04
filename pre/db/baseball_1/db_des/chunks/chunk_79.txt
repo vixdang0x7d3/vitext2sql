@@ -1,3 +1,0 @@
-- số trận thua (l): số trận thua
-- số trận tham gia (g): số trận tham gia
-- số trận bắt đầu (gs): số trận bắt đầu ở vai trò chính

@@ -1,3 +1,0 @@
-- số lượt đánh chính thức (ab): số lượt đánh chính thức
-- số cú đánh trúng (h): số cú đánh trúng
-- số cú đánh đôi (loại_hai_người): số cú đánh giúp lên base thứ hai

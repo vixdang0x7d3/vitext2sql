@@ -1,3 +1,0 @@
-- số lần đánh hi sinh của đối thủ (sh): đánh hi sinh của đối thủ
-- số lần đánh hi sinh của đối thủ để đồng đội ghi điểm (sf): đánh hi sinh của đối thủ
-- số lần đối thủ đánh dẫn đến double play (g_idp): số lần đối thủ đánh dẫn đến double play

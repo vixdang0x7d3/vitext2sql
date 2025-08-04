@@ -17,5 +17,7 @@ wheels/
 # Marimo exports
 __marimo__/*.html
 
-# Model files
+# Data and model weights
 models/
+pre/db/*
+pre/sql_ex_collection/*

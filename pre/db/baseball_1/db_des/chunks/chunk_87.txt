@@ -1,3 +1,0 @@
-bảng: thành tích ném bóng sau mùa giải
-- mã định danh cầu thủ (id_cầu_thủ): mã định danh của cầu thủ
-- năm (năm): năm của mùa giải sau

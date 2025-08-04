@@ -1,3 +1,0 @@
-- mã định danh giải đấu (id_giải_đấu): mã định danh của giải đấu
-- mã định danh cầu thủ (id_cầu_thủ): mã định danh của cầu thủ
-- số trận tham gia toàn bộ (g_toàn_bộ): số trận tham gia toàn bộ

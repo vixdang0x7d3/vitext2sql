@@ -1,3 +1,0 @@
-- mã định danh giải đấu (id_giải_đấu): mã định danh của giải đấu
-- số trận hòa (số_trận_hoà): số trận hòa liên quan đến giải thưởng
-- ghi chú (ghi_chú): ghi chú về giải thưởng

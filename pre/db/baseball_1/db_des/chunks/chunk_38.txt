@@ -1,3 +1,0 @@
-- số lần đánh hi sinh (sh): đánh hi sinh (bunt)
-- số lần đánh hi sinh để đồng đội ghi điểm (sf): đánh hi sinh để đồng đội ghi điểm
-- số lần đánh dẫn đến double play (g_idp): số lần đánh dẫn đến double play

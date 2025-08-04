@@ -1,3 +1,0 @@
-- tổng số batter đối đầu (bfp): tổng số batter đối đầu
-- số trận pitcher kết thúc (gf): số trận pitcher kết thúc
-- số điểm bị đối thủ ghi (r): số điểm bị đối thủ ghi

@@ -1,3 +1,0 @@
-- số lần ném bóng hỏng (wp): wild pitches – số lần ném bóng hỏng
-- số lần đối thủ cướp base thành công (sb): số lần đối thủ cướp base thành công
-- số lần bắt được đối thủ khi cướp base (cs): số lần bắt được đối thủ khi cướp base

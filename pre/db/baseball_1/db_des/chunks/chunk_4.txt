@@ -1,3 +1,0 @@
-- ngày sinh (ngày_sinh): ngày sinh của cầu thủ
-- đất nước nơi sinh (đất_nước_nơi_sinh): đất nước nơi cầu thủ sinh ra
-- tiểu bang nơi sinh (tiểu_bang_nơi_sinh): tiểu bang nơi cầu thủ sinh ra

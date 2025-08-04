@@ -1,3 +1,0 @@
-- số trận cứu thua thành công (sv): số trận cứu thua thành công
-- tổng số lần out khi ném (ipouts): tổng số lần out khi ném
-- số cú đánh trúng của đối thủ (h): số cú đánh trúng của đối thủ

@@ -1,3 +1,0 @@
-- số trận bắt đầu (gs): số trận bắt đầu ở vai trò chính
-- số trận đánh bóng (g_đánh_bóng): số trận tham gia với vai trò đánh bóng
-- số trận phòng ngự (g_phòng_ngự): số trận tham gia với vai trò phòng ngự

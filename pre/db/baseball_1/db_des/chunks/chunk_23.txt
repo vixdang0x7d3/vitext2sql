@@ -1,3 +1,0 @@
-- số trận hòa (số_trận_hoà): số trận hòa liên quan đến giải thưởng
-- ghi chú (ghi_chú): ghi chú về giải thưởng
-bảng: giải thưởng dành cho cầu thủ

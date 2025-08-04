@@ -1,3 +1,0 @@
-- mã định danh sân vận động (id_sân_vận_động): mã định danh của sân vận động
-- tên sân vận động (tên_sân_vận_động): tên sân vận động
-- tên gọi khác của sân vận động (tên_gọi_khác_của_sân_vận_động): tên gọi khác của sân vận động

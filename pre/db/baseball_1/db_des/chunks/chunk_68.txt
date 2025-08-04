@@ -1,3 +1,0 @@
-- ngày của trận cuối cùng (ngày_của_trận_cuối_cùng): ngày diễn ra trận cuối cùng
-- số lượng trận đấu (số_lượng_trận_đấu): số trận đấu sân nhà
-- số lần mở cửa (số_lần_mở_cửa): số lần mở cửa sân vận động

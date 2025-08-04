@@ -1,3 +1,0 @@
-- lương (lương): mức lương của cầu thủ
-bảng: trường đại học
-- mã định danh trường đại học (id_trường_đại_học): mã định danh của trường đại học

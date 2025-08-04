@@ -1,3 +1,0 @@
-- số lỗi phòng ngự (e): số lỗi phòng ngự
-- số pha loại hai cầu thủ (dp): số pha loại 2 cầu thủ
-- số bóng catcher để lọt qua (pb): số bóng catcher để lọt qua

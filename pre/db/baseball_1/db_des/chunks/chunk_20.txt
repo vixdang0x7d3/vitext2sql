@@ -1,3 +1,0 @@
-- số trận ở vị trí outfield (g_of): số trận ở vị trí outfield (chung)
-- số trận ở vị trí designated hitter (g_dh): số trận ở vị trí designated hitter
-- số trận ở vai trò pinch hitter (g_ph): số trận ở vai trò pinch hitter

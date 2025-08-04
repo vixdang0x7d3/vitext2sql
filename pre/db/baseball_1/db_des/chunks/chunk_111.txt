@@ -1,3 +1,0 @@
-- số cú đánh ba (loại_ba_người): số cú đánh giúp lên base thứ ba
-- số cú home run (hr): số cú home run
-- số lần đi bộ (bb): số lần đi bộ

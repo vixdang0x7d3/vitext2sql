@@ -1,3 +1,0 @@
-- số lần bị loại khi đánh trượt (so): số lần bị loại khi đánh trượt
-- số lần đi bộ cố ý (ibb): đi bộ cố ý
-- số lần bị bóng ném trúng người (hbp): bị bóng ném trúng người

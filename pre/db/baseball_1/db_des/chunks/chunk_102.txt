@@ -1,3 +1,0 @@
-- vòng đấu (vòng_đấu): vòng đấu trong mùa giải sau
-- mã định danh đội chiến thắng (id_đội_chiến_thắng): mã định danh của đội chiến thắng
-- mã giải đấu của đội chiến thắng (id_đội_chiến_thắng_tại_giải_đấu): mã giải đấu của đội chiến thắng

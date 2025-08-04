@@ -1,3 +1,0 @@
-bảng: lần xuất hiện
-- năm (năm): năm ghi nhận lần xuất hiện
-- mã định danh đội (id_đội): mã định danh của đội
