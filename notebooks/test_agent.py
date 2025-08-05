@@ -19,7 +19,7 @@ def _():
     from llm_client import LlamaClient, OpenAIClient, create_ollama_client
     from agent import Agent
 
-    return DatabaseManager, OpenAIClient, mo
+    return Agent, DatabaseManager, OpenAIClient, mo
 
 
 @app.cell(hide_code=True)
@@ -32,7 +32,7 @@ def _(mo):
 def _():
     import sqlalchemy
 
-    baseball_db_path = "data/baseball_1.sqlite"
+    baseball_db_path = "data/testing/baseball_1.sqlite"
 
     baseball_db_url = f"sqlite:///{baseball_db_path}"
     baseball_db = sqlalchemy.create_engine(baseball_db_url)
@@ -77,7 +77,7 @@ def _():
     )
 
     base_prompt = ""
-    with open("data/baseball_1_base_prompt.txt", "r") as f:
+    with open("data/testing/baseball_1_base_prompt.txt", "r") as f:
         base_prompt = f.read()
     print(f"Question: {question}\n")
     print_wrapped(base_prompt, wrap_length=120)
@@ -94,9 +94,6 @@ def _(baseball_db, mo):
         JOIN đội as d ON lxh.id_đội = d.id_đội
         JOIN trận_đấu_sân_nhà   AS tsn ON tsn.id_đội    = d.id_đội
         JOIN sân_vận_động       AS svd ON svd.id_sân_vận_động = tsn.id_sân_vận_động
-
-
-
         """,
         engine=baseball_db
     )
@@ -131,7 +128,7 @@ def _(DatabaseManager, baseball_db_path):
     )
 
     print(dbman.format_query_result(result))
-    return
+    return (dbman,)
 
 
 @app.cell
@@ -198,19 +195,17 @@ def _(OpenAIClient):
     return (client,)
 
 
-app._unparsable_cell(
-    r"""
-        agent = Agent(
-        db_path=\"data\",
-        db_id=\"baseball_1.sqlite\",
+@app.cell
+def _(Agent, client, dbman):
+    agent = Agent(
+        db_path="data/testing",
+        db_id="baseball_1.sqlite",
         db_manager=dbman,
         client=client,
     )
 
     agent.health_check()
-    """,
-    name="_"
-)
+    return (agent,)
 
 
 @app.cell(hide_code=True)

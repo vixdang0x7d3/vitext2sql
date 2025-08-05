@@ -91,7 +91,7 @@ def reduce_ddl(linked_json="", reduce_col=False, db_name="", id=1):
     print("Doing sl for")
     table_names_no_digit = [remove_digits(i) for i in table_names]
 
-    db_folder = os.path.join("db", db_name)
+    db_folder = os.path.join("pre/db", db_name)
     output_csv = os.path.join(db_folder, "schema", "DDL.csv")
 
     temp_file = os.path.join(db_folder, "ddl_sl")
@@ -179,7 +179,7 @@ def ask_model_sl(task, id, db_name):
         # with open(task_path,encoding='utf-8') as f:
         #     task = f.read()
 
-        chat_session = OpenAIClient(model="o3-2025-04-16", max_context_length=200_000)
+        chat_session = OpenAIClient(model="gpt-4.1", max_context_length=200_000)
         result = ask_model_sl_(tb_info, task, chat_session, db_name, id=id)
         return result
 
@@ -330,7 +330,7 @@ def ask_model_sl_(tb_info, task, chat_session, db_name, id):
     linked = []
 
     # Đọc external knowledge
-    db_folder = os.path.join("db", db_name)
+    db_folder = os.path.join("pre/db", db_name)
     external_knowledge_path = os.path.join(db_folder, "external_knowledge")
 
     db_des_file = os.path.join(external_knowledge_path, "db_des_context", f"{id}.txt")

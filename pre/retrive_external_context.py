@@ -76,6 +76,8 @@ def retrieve_from_collections(
     """
     try:
         # Kết nối tới ChromaDB
+
+        print(os.getcwd())
         chroma_client_sql_ex = chromadb.PersistentClient(path="pre/sql_ex_collection")
 
         # Lấy collections
@@ -180,7 +182,9 @@ def retrieve_from_collections(
         return []
 
 
-def create_prompt_context(db_des: bool, retrieved_results: List[Dict]) -> str:
+def create_prompt_context(
+    db_des: bool, retrieved_results: List[Dict]
+) -> tuple[str, str]:
     """
     Tạo context string ngắn gọn để đưa trực tiếp vào prompt cho LLM.
 
@@ -236,7 +240,7 @@ def save_prompt_context(
     """
     db_des_context, sql_ex_context = create_prompt_context(db_des, results)
 
-    db_folder = os.path.join("db", db_name)
+    db_folder = os.path.join("pre/db", db_name)
     external_knowledge = os.path.join(db_folder, "external_knowledge")
     os.makedirs(external_knowledge, exist_ok=True)
     output_sql_ex_file = os.path.join(external_knowledge, output_sql_ex_file)
