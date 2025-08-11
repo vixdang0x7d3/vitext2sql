@@ -301,6 +301,7 @@ Return **a JSON array of exactly 3 elements**, each inside a JSON code block, li
 
 Table info: {0}
 Task: {1}
+External Knowledge:
 {2}
 """
 
