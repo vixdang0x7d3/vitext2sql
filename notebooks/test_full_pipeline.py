@@ -20,7 +20,7 @@ def _():
 
 
     from database_manager import DatabaseManager
-    from llm_client import LlamaClient, OpenAIClient, create_ollama_client
+    from llm_client import  OpenAIClient, create_ollama_client
     from agent import Agent
 
     import pre.retrive_external_context

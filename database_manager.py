@@ -1,7 +1,7 @@
 import sqlite3
 import pandas as pd
 from func_timeout import func_timeout, FunctionTimedOut
-
+import os
 from dataclasses import dataclass
 from enum import Enum
 
@@ -57,10 +57,12 @@ class DatabaseManager:
         sqlite_path: str
             Path to the target database
         """
+        normalized_path = os.path.normpath(sqlite_path)
+        print(normalized_path)
         if sqlite_path not in self.conns:
-            uri = f"file:{sqlite_path}?mode=ro"
+            uri = f"file:{normalized_path}?mode=ro"
             conn = sqlite3.connect(uri, uri=True, check_same_thread=False)
-            self.conns[sqlite_path] = conn
+            self.conns[normalized_path] = conn
 
     def close_all(self):
         """
@@ -112,7 +114,9 @@ class DatabaseManager:
         """
         Main logic for query execution
         """
-
+        sqlite_path = os.path.normpath(sqlite_path)
+        # print(sqlite_path)
+        # print(self.conns)
         if sqlite_path not in self.conns:
             return QueryResult(
                 query=query,
@@ -289,6 +293,7 @@ Showing: {min(max_rows, total_rows)} rows
         Validate SQL query syntax without executing it
         Useful for
         """
+        sqlite_path = os.path.normpath(sqlite_path)
         if sqlite_path not in self.conns:
             return QueryResult(
                 query=query,

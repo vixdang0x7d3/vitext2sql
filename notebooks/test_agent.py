@@ -16,7 +16,7 @@ def _():
         sys.path.insert(0, root)
 
     from database_manager import DatabaseManager
-    from llm_client import LlamaClient, OpenAIClient, create_ollama_client
+    from llm_client import  OpenAIClient, create_ollama_client
     from agent import Agent
 
     return Agent, DatabaseManager, OpenAIClient, mo

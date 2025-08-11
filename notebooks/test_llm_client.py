@@ -20,7 +20,6 @@ def _():
         LLMClient,
         OpenAIClient,
         HuggingFaceClient,
-        LlamaClient,
         LLMClientFactory,
         create_ollama_client,
     )
@@ -32,7 +31,6 @@ def _():
         HuggingFaceClient,
         LLMClient,
         LLMClientFactory,
-        LlamaClient,
         OpenAIClient,
         create_ollama_client,
         extract_all_blocks,
@@ -236,10 +234,10 @@ def _(LLMClientFactory, mo, patch, test_results):
                 LLMClientFactory.__init__("hf", model="test-model")
                 mock_hf_client.assert_called_once_with(model="test-model")
 
-            # Test Llama client creation
-            with patch('llm_client.LlamaClient') as mock_llama_client:
-                LLMClientFactory.__init__("llamacpp", model_path="/path/to/model")
-                mock_llama_client.assert_called_once_with(model_path="/path/to/model")
+            # # Test Llama client creation
+            # with patch('llm_client.LlamaClient') as mock_llama_client:
+            #     LLMClientFactory.__init__("llamacpp", model_path="/path/to/model")
+            #     mock_llama_client.assert_called_once_with(model_path="/path/to/model")
 
             # Test case insensitivity
             with patch('llm_client.OpenAIClient') as mock_client:
@@ -348,49 +346,49 @@ def _(HuggingFaceClient):
     return
 
 
-@app.cell
-def _(LlamaClient):
-    def _():
-        llama_client = LlamaClient(model_path="models/Qwen3-1.7B-BF16.gguf")
-        response = llama_client.get_response("What is AI? Speak Vietnamese")
-        print(f"Llama response: {response}")
+# @app.cell
+# def _(LlamaClient):
+#     def _():
+#         llama_client = LlamaClient(model_path="models/Qwen3-1.7B-BF16.gguf")
+#         response = llama_client.get_response("What is AI? Speak Vietnamese")
+#         print(f"Llama response: {response}")
 
-    _()
-    return
-
-
-@app.cell
-def _(LlamaClient):
-    # System prompt test
-    def _():
-        sql_client = LlamaClient(
-            model_path="models/Qwen3-1.7B-BF16.gguf",
-            system_prompt="you're a SQL expert, only answer in valid SQL",
-        )
-
-        sql_response = sql_client.get_response("get the number of users that logged in more than 150 times")
-        print(f"SQL response: {sql_response}")
-
-    _()
-    return
+#     _()
+#     return
 
 
-@app.cell
-def _(LlamaClient):
-    # Multi-turn convo test
-    def _():
-        llama_client = LlamaClient(
-            model_path="models/Qwen3-1.7B-BF16.gguf",
-            n_gpu_layers=10,
-            system_prompt="You're a international communication agent, reponse with English only."
-        )
+# @app.cell
+# def _(LlamaClient):
+#     # System prompt test
+#     def _():
+#         sql_client = LlamaClient(
+#             model_path="models/Qwen3-1.7B-BF16.gguf",
+#             system_prompt="you're a SQL expert, only answer in valid SQL",
+#         )
 
-        llama_client.get_response("My name is John")
-        response_2 = llama_client.get_response("What's my name?")
-        print(f"Memory test: {response_2}")
+#         sql_response = sql_client.get_response("get the number of users that logged in more than 150 times")
+#         print(f"SQL response: {sql_response}")
 
-    _()
-    return
+#     _()
+#     return
+
+
+# @app.cell
+# def _(LlamaClient):
+#     # Multi-turn convo test
+#     def _():
+#         llama_client = LlamaClient(
+#             model_path="models/Qwen3-1.7B-BF16.gguf",
+#             n_gpu_layers=10,
+#             system_prompt="You're a international communication agent, reponse with English only."
+#         )
+
+#         llama_client.get_response("My name is John")
+#         response_2 = llama_client.get_response("What's my name?")
+#         print(f"Memory test: {response_2}")
+
+#     _()
+#     return
 
 
 @app.cell(disabled=True)

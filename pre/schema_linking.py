@@ -11,8 +11,7 @@ from .utils import (
 )
 
 
-from llm_client import OpenAIClient  # ty: ignore
-
+from llm_client import OpenAIClient,GPTChat  # ty: ignore
 from .reconstruct_data import compress_ddl
 import os
 import json
@@ -66,9 +65,15 @@ def reduce_columns(sql: str, subset_columns: set[str]) -> str:
     return new_sql
 
 
-def reduce_ddl(linked_json="", reduce_col=False, db_name="", id=1):
+def reduce_ddl(db_folder,db_path,linked_json="", reduce_col=False, db_name="", id=1,log_callback=None):
     print("Doing schema linking")
+    logs = []
 
+    def log(msg):
+        if log_callback:
+            log_callback(msg)
+        else:
+            logs.append(msg)
     with open(linked_json, encoding="utf-8") as f:
         tbs = json.load(f)
 
@@ -91,7 +96,7 @@ def reduce_ddl(linked_json="", reduce_col=False, db_name="", id=1):
     print("Doing sl for")
     table_names_no_digit = [remove_digits(i) for i in table_names]
 
-    db_folder = os.path.join("pre/db", db_name)
+    # db_folder = os.path.join("pre/db", db_name)
     output_csv = os.path.join(db_folder, "schema", "DDL.csv")
 
     temp_file = os.path.join(db_folder, "ddl_sl")
@@ -152,6 +157,7 @@ def reduce_ddl(linked_json="", reduce_col=False, db_name="", id=1):
         print(
             f" tables before linking: {total_count}, tables after linking: {row_count}, tables rm digits after linking: {row_count_rm}"
         )
+        log(f" tables before linking: {total_count}, tables after linking: {row_count}")
         if 0 < row_count < 10 or row_count_rm > 1000 or reduce_col:
             writer.writerows(row_list)
         elif row_count_rm:
@@ -159,6 +165,7 @@ def reduce_ddl(linked_json="", reduce_col=False, db_name="", id=1):
             writer.writerows(row_list_all)
 
     compress_ddl(
+        db_folder,db_path,
         id=id,
         db_name=db_name,
         add_description=True,
@@ -166,12 +173,21 @@ def reduce_ddl(linked_json="", reduce_col=False, db_name="", id=1):
         rm_digits=True,
         schema_linked=True,
         clear_long_eg_des=True,
-        reduce_col=reduce_col,
+        reduce_col=reduce_col,log_callback=log_callback
     )
 
 
-def ask_model_sl(task, id, db_name):
-    def process_example(task, tb_info, db_name):
+def ask_model_sl(db_folder,db_path,task, id, db_name,chat_session,log_callback=None):
+    
+    logs = []
+
+    def log(msg):
+        if log_callback:
+            log_callback(msg)
+        else:
+            logs.append(msg)
+
+    def process_example(task, tb_info, db_name,log_callback):
         # if ex_id.startswith("local"):
         #     pass
 
@@ -179,11 +195,11 @@ def ask_model_sl(task, id, db_name):
         # with open(task_path,encoding='utf-8') as f:
         #     task = f.read()
 
-        chat_session = OpenAIClient(model="gpt-4.1", max_context_length=200_000)
-        result = ask_model_sl_(tb_info, task, chat_session, db_name, id=id)
+       
+        result = ask_model_sl_(db_folder,db_path,tb_info, task, chat_session, db_name, id=id,log_callback=log_callback)
         return result
 
-    db_folder = os.path.join("pre/db", db_name)
+    # db_folder = os.path.join("pre/db", db_name)
     output_path = os.path.join(db_folder, "prompts")
 
     # assert len(tb_info_pth) == 1
@@ -192,30 +208,38 @@ def ask_model_sl(task, id, db_name):
     if len(tb_info) > 20000:
         # linked_dic = {}
         print("Doing table-level schema linking")
-        with ThreadPoolExecutor(max_workers=32) as executor:
-            futures = [
-                executor.submit(
-                    process_example, task=task, tb_info=tb_info, db_name=db_name
-                )
-            ]
-            for future in tqdm(
-                as_completed(futures), total=len(futures), desc="Processing"
-            ):
-                result = future.result()
+        log("Doing table-level schema linking")
+        # with ThreadPoolExecutor(max_workers=32) as executor:
+        #     futures = [
+        #         executor.submit(
+        #             process_example, task=task, tb_info=tb_info, db_name=db_name,log_callback=log_callback
+        #         )
+        #     ]
+        #     for future in tqdm(
+        #         as_completed(futures), total=len(futures), desc="Processing"
+        #     ):
+        #         result = future.result()
             #     if ex_id is not None:
             #         linked_dic[ex_id] = result
-            output_path = os.path.join(db_folder, "sl_response")
-            os.makedirs(output_path, exist_ok=True)
-            with open(
-                os.path.join(output_path, str(id) + ".txt"), "w", encoding="utf-8"
-            ) as f:
-                f.write(json.dumps(result, indent=4, ensure_ascii=False))
-            reduce_ddl(
-                linked_json=os.path.join(output_path, str(id) + ".txt"),
-                reduce_col=True,
-                db_name=db_name,
-                id=id,
-            )
+        result = process_example(
+        task=task,
+        tb_info=tb_info,
+        db_name=db_name,
+        log_callback=log_callback
+        )    
+        output_path = os.path.join(db_folder, "sl_response")
+        os.makedirs(output_path, exist_ok=True)
+        with open(
+            os.path.join(output_path, str(id) + ".txt"), "w", encoding="utf-8"
+        ) as f:
+            f.write(json.dumps(result, indent=4, ensure_ascii=False))
+        # log(json.dumps(result, indent=4, ensure_ascii=False))
+        reduce_ddl(db_folder,db_path,
+            linked_json=os.path.join(output_path, str(id) + ".txt"),
+            reduce_col=True,
+            db_name=db_name,
+            id=id,log_callback=log_callback
+        )
     else:
         output_path = os.path.join(db_folder, "final_context_prompts")
         os.makedirs(output_path, exist_ok=True)
@@ -236,12 +260,14 @@ def ask_model_sl(task, id, db_name):
             tb_info += (
                 f"External knowledge that might be helpful: \n{external_knowledge}\n"
             )
-            with open(
-                os.path.join(output_db_des_file, str(id) + ".txt"), encoding="utf-8"
-            ) as a:
-                external_knowledge = a.read()
-            tb_info += f"\n{external_knowledge}\n"
+            if os.path.exists(os.path.join(output_db_des_file, str(id) + ".txt")):
+                with open(
+                    os.path.join(output_db_des_file, str(id) + ".txt"), encoding="utf-8"
+                ) as a:
+                    external_knowledge = a.read()
+                tb_info += f"\n{external_knowledge}\n"
             f.writelines(tb_info)
+            log("Dưới 20k - không schema linking")
 
 
 ask_prompt = """
@@ -325,12 +351,19 @@ Task: {1}
 
 
 #     return linked
-def ask_model_sl_(tb_info, task, chat_session, db_name, id):
+def ask_model_sl_(db_folder,db_path,tb_info, task, chat_session, db_name, id,log_callback=None):
     tbs = get_tb_info(tb_info)
     linked = []
+    logs = []
+
+    def log(msg):
+        if log_callback:
+            log_callback(msg)
+        else:
+            logs.append(msg)
 
     # Đọc external knowledge
-    db_folder = os.path.join("pre/db", db_name)
+    # db_folder = os.path.join("pre/db", db_name)
     external_knowledge_path = os.path.join(db_folder, "external_knowledge")
 
     db_des_file = os.path.join(external_knowledge_path, "db_des_context", f"{id}.txt")
@@ -345,9 +378,10 @@ def ask_model_sl_(tb_info, task, chat_session, db_name, id):
     def chunk_list(lst, n):
         for i in range(0, len(lst), n):
             yield lst[i : i + n]
+            
+    chat_session.init_messages()
 
     for chunk in chunk_list(tbs, 3):  # mỗi lần 3 bảng
-        chat_session.init_messages()
         max_try = 2
         tb_text = "\n\n".join(chunk)
         input_prompt = ask_prompt.format(tb_text, task, db_des)
@@ -355,14 +389,15 @@ def ask_model_sl_(tb_info, task, chat_session, db_name, id):
         success = False
         while max_try:
             response = chat_session.get_model_response(input_prompt, "json")
-            time.sleep(0.5)
+            # time.sleep(0.5)
             print(response)  # debug
             if len(response) == 1:
-                print("ngu")
+                print("len la 1")
             try:
                 # response là list JSON string -> parse từng cái
                 for item, tb in zip(response, chunk):
                     data = json.loads(item)
+                    log(json.dumps(data, indent=4, ensure_ascii=False))
                     assert data["answer"] in ["Y", "N"], (
                         'data["answer"] should be in ["Y", "N"]'
                     )

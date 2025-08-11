@@ -49,6 +49,7 @@ class Agent:
         self,
         question,
         base_prompt,
+        log_callback=None
     ):
         self_refine_prompt = initial_prompt.format(
             question=question,
@@ -64,6 +65,14 @@ class Agent:
 
         final_sql = None
         final_result = None
+        logs = []
+
+
+        def log(msg):
+            if log_callback:
+                log_callback(msg)
+            else:
+                logs.append(msg)
 
         while iter < self.max_iter:
             response_sql = None
@@ -82,6 +91,8 @@ class Agent:
                 print("Error generating SQL")
                 break
 
+            log(f"Iteration {iter+1}: Generated SQL:\n{response_sql}")
+            
             print(f"Try to run SQL in self-refine - Iteration {iter + 1}")
             print(f"SQL:\n{response_sql}")
 
@@ -91,6 +102,13 @@ class Agent:
                 save_path=None,
             )
 
+            if executed_result.success:
+                log(f"Executed successfully, rows affected: {executed_result.rows_affected}")
+            else:
+                log(f"Execution failed: {executed_result.error_type} - {executed_result.error_message}")
+
+
+           
             if not executed_result.success:
                 error_rec.append(1)
                 empty_rec.append(0)
@@ -195,7 +213,7 @@ class Agent:
         # notify user and log status
         success = iter < self.max_iter and final_result is not None
 
-        return success, final_result, final_sql
+        return success, final_result, final_sql, "\n".join(logs)
 
     def get_result_dataframe(self, compressed_result: dict) -> pd.DataFrame:
         """Helper method to get DataFrame from compressed result"""
@@ -222,6 +240,7 @@ class Agent:
         print("=== Health Check ===")
 
         # Test database
+        print("fix "+ self.sqlite_path)
         try:
             result = self.db_manager.exec_query_sqlite(
                 "SELECT 1", self.sqlite_path, save_path=None
@@ -233,18 +252,18 @@ class Agent:
             print(f"✗ Database: FAILED - {e}")
 
         # Test LLM
-        try:
-            # Check API key for OpenAI clients
-            if hasattr(self.llm, "health_check"):
-                if self.llm.health_check():
-                    print("✓ LLM: OK")
-                else:
-                    print("✗ LLM: FAILED - API connection failed")
-            else:
-                response = self.llm.get_model_response("write a dummy sql query", "sql")
-                print(f"✓ LLM: {'OK' if response else 'FAILED'}")
-        except Exception as e:
-            print(f"✗ LLM: FAILED - {e}")
+        # try:
+        #     # Check API key for OpenAI clients
+        #     if hasattr(self.llm, "health_check"):
+        #         if self.llm.health_check():
+        #             print("✓ LLM: OK")
+        #         else:
+        #             print("✗ LLM: FAILED - API connection failed")
+        #     else:
+        #         response = self.llm.get_model_response("write a dummy sql query", "sql")
+        #         print(f"✓ LLM: {'OK' if response else 'FAILED'}")
+        # except Exception as e:
+        #     print(f"✗ LLM: FAILED - {e}")
 
         # Test schema
         try:

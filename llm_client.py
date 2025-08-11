@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 from openai import OpenAI, AzureOpenAI
-from llama_cpp import Llama
+# from llama_cpp import Llama
 
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
@@ -13,6 +13,9 @@ import torch
 from utils import extract_all_blocks
 from tokenizer import TokenizerInterface
 
+from dotenv import load_dotenv
+import os
+import sys
 
 @dataclass
 class ChatMessage:
@@ -381,7 +384,10 @@ class OpenAIClient(LLMClient):
 
     def _init_client(self):
         if not self.azure:
-            self.client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+            self.client = OpenAI(
+
+                api_key=os.environ.get("OPENAI_API_KEY")
+            )
         else:
             if self.model in ["o1-preview", "o1-mini", "o3", "o4-mini"]:
                 api_version = "2024-12-01-preview"
@@ -430,6 +436,83 @@ class OpenAIClient(LLMClient):
         except Exception:
             return False
 
+
+class GPTChat:
+    def __init__(self, azure=False, model="openai/gpt-4.1", temperature=1,system_prompt: str | None = None) -> None:
+        load_dotenv()
+        self.client = OpenAI(
+            base_url="https://models.github.ai/inference",
+            api_key=os.environ.get("OPENAI_API_KEY"),
+        )
+        self.messages = []
+        self.model = model
+        self.temperature = float(temperature)
+        self.messages = []
+        if system_prompt:
+            self.messages.append({"role": "system", "content": system_prompt})
+    def get_response(self, prompt) -> str:
+        self.messages.append({"role": "user", "content": prompt})
+        if self.model in ["o3-pro"]:
+            response = self.client.responses.create(
+                model=self.model,
+                input=self.messages,
+                temperature=self.temperature
+            )
+            main_content = response.output_text
+        else:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=self.messages,
+                temperature=self.temperature
+            )
+            main_content = response.choices[0].message.content
+        self.messages.append({"role": "assistant", "content": main_content})
+        return main_content
+
+    def get_model_response(self, prompt, code_format=None) -> list:
+        code_blocks = []
+        max_try = 3
+        while code_blocks == [] and max_try > 0:
+            max_try -= 1
+            try:
+                response = self.get_response(prompt)
+            except Exception as e:
+                print(f"max_try: {max_try}, exception: {e}")
+                continue
+            code_blocks = extract_all_blocks(response, code_format)
+        if max_try == 0 or code_blocks == []:
+            print(f"get_model_response() exit, max_try: {max_try}, code_blocks: {code_blocks}")
+            sys.exit(0)
+            
+        return code_blocks
+
+    def get_model_response_txt(self, prompt):
+        max_try = 3
+        while max_try > 0:
+            max_try -= 1
+            try:
+                response = self.get_response(prompt)
+            except Exception as e:
+                print(f"max_try: {max_try}, exception: {e}")
+                continue
+            break
+        if max_try == 0:
+            print(f"get_model_response_txt() exit, max_try: {max_try}")
+            sys.exit(0)
+        
+        return response
+
+    def get_message_len(self):
+        return {
+            "prompt_len": sum(len(item["content"]) for item in self.messages if item["role"] == "user"),
+            "response_len": sum(len(item["content"]) for item in self.messages if item["role"] == "assistant"),
+            "num_calls": len(self.messages) // 2
+        }
+    
+    def init_messages(self, system_prompt=None):
+        self.messages = []
+        if system_prompt:
+            self.messages.append({"role": "system", "content": system_prompt})
 
 class HuggingFaceClient(LLMClient):
     def __init__(
@@ -517,63 +600,63 @@ class HuggingFaceClient(LLMClient):
         return response.strip()
 
 
-class LlamaClient(LLMClient):
-    def __init__(
-        self,
-        model_path: str,  # path to GGUF file
-        model_name: str,  # model's ID on HuggingFace
-        temperature: float = 1.0,
-        tokenizer: TokenizerInterface | None = None,
-        n_ctx: int = 4096,
-        context_buffer_ratio: float = 0.1,
-        preserve_recent_exchanges: int = 2,
-        n_gpu_layers=0,
-        system_prompt: str | None = None,
-        **kwargs,
-    ):
-        super().__init__(
-            model=model_name,
-            temperature=temperature,
-            tokenizer=tokenizer,
-            max_context_length=n_ctx,
-            context_buffer_ratio=context_buffer_ratio,
-            preserve_recent_exchanges=preserve_recent_exchanges,
-            system_prompt=system_prompt,
-        )
-        self.model_path = model_path
-        self.n_ctx = n_ctx
-        self.n_gpu_layers = n_gpu_layers
-        self.kwargs = kwargs
-        self._init_client()
+# class LlamaClient(LLMClient):
+#     def __init__(
+#         self,
+#         model_path: str,  # path to GGUF file
+#         model_name: str,  # model's ID on HuggingFace
+#         temperature: float = 1.0,
+#         tokenizer: TokenizerInterface | None = None,
+#         n_ctx: int = 4096,
+#         context_buffer_ratio: float = 0.1,
+#         preserve_recent_exchanges: int = 2,
+#         n_gpu_layers=0,
+#         system_prompt: str | None = None,
+#         **kwargs,
+#     ):
+#         super().__init__(
+#             model=model_name,
+#             temperature=temperature,
+#             tokenizer=tokenizer,
+#             max_context_length=n_ctx,
+#             context_buffer_ratio=context_buffer_ratio,
+#             preserve_recent_exchanges=preserve_recent_exchanges,
+#             system_prompt=system_prompt,
+#         )
+#         self.model_path = model_path
+#         self.n_ctx = n_ctx
+#         self.n_gpu_layers = n_gpu_layers
+#         self.kwargs = kwargs
+#         self._init_client()
 
-    def _init_client(self):
-        self.llm = Llama(
-            model_path=self.model_path,
-            n_ctx=self.n_ctx,
-            n_gpu_layers=self.n_gpu_layers,
-            verbose=False,
-            **self.kwargs,
-        )
+#     def _init_client(self):
+#         self.llm = Llama(
+#             model_path=self.model_path,
+#             n_ctx=self.n_ctx,
+#             n_gpu_layers=self.n_gpu_layers,
+#             verbose=False,
+#             **self.kwargs,
+#         )
 
-    def _generate_response(self, messages: list[ChatMessage]):
-        conversation = ""
-        for msg in messages:
-            if msg.role == "system":
-                conversation += f"System: {msg.content}\n"
-            elif msg.role == "user":
-                conversation += f"User: {msg.content}\n"
-            elif msg.role == "assistant":
-                conversation += f"Assistant: {msg.content}\n"
-        conversation += "Assistant: "
+#     def _generate_response(self, messages: list[ChatMessage]):
+#         conversation = ""
+#         for msg in messages:
+#             if msg.role == "system":
+#                 conversation += f"System: {msg.content}\n"
+#             elif msg.role == "user":
+#                 conversation += f"User: {msg.content}\n"
+#             elif msg.role == "assistant":
+#                 conversation += f"Assistant: {msg.content}\n"
+#         conversation += "Assistant: "
 
-        output = self.llm(
-            conversation,
-            max_tokens=2048,
-            temperature=self.temperature,
-            stop=["User:", "\n\n"],
-        )
+#         output = self.llm(
+#             conversation,
+#             max_tokens=2048,
+#             temperature=self.temperature,
+#             stop=["User:", "\n\n"],
+#         )
 
-        return output["choices"][0]["text"].strip()
+#         return output["choices"][0]["text"].strip()
 
 
 class LLMClientFactory:
@@ -591,8 +674,8 @@ class LLMClientFactory:
             return OpenAICompatClient(**kwargs)
         elif client_type in ["huggingface", "hf", "transformers"]:
             return HuggingFaceClient(**kwargs)  # ty: ignore
-        elif client_type in ["llamacpp", "llama_cpp", "llama-cpp"]:
-            return LlamaClient(**kwargs)  # ty: ignore
+        # elif client_type in ["llamacpp", "llama_cpp", "llama-cpp"]:
+        #     return LlamaClient(**kwargs)  # ty: ignore
         else:
             raise ValueError(f"Unsupported client type: {client_type}")
 

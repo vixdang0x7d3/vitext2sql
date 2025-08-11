@@ -9,7 +9,7 @@ import time
 import logging
 # import py_vncorenlp
 
-# from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer
 
 
 # Tắt telemetry của ChromaDB
@@ -27,40 +27,39 @@ os.environ["CHROMADB_TELEMETRY_ENABLED"] = "False"
 # os.chdir(old_cwd)
 # print(os.getcwd())
 # ===== 2. Load Vietnamese Embedding Model (BGE-M3) =====
-# class VietnameseEmbedding:
-#     def __init__(self, model_name="BAAI/bge-m3"):
-#         self.model = SentenceTransformer(model_name)
-
-
-#     def encode(self, texts):
-#         """Encode Vietnamese texts to normalized embeddings"""
-#         return self.model.encode(texts, normalize_embeddings=True).tolist()
 class VietnameseEmbedding:
     def __init__(self, model_name="BAAI/bge-m3"):
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name, force_download=False)
-        self.model = AutoModel.from_pretrained(model_name, force_download=False)
-        self.model.eval()
+        self.model = SentenceTransformer(model_name)
 
-    def encode(self, texts: List[str]) -> List[List[float]]:
-        """Encode Vietnamese texts to embeddings"""
-        embeddings = []
-        for text in texts:
-            inputs = self.tokenizer(
-                text, return_tensors="pt", padding=True, truncation=True, max_length=512
-            )
-            with torch.no_grad():
-                outputs = self.model(**inputs)
-                embedding = outputs.last_hidden_state.mean(dim=1).squeeze().numpy()
-                embeddings.append(embedding.tolist())
-        return embeddings
+    def encode(self, texts):
+        """Encode Vietnamese texts to normalized embeddings"""
+        return self.model.encode(texts, normalize_embeddings=True).tolist()
+# class VietnameseEmbedding:
+#     def __init__(self, model_name="BAAI/bge-m3"):
+#         self.tokenizer = AutoTokenizer.from_pretrained(model_name, force_download=False)
+#         self.model = AutoModel.from_pretrained(model_name, force_download=False)
+#         self.model.eval()
+
+#     def encode(self, texts: List[str]) -> List[List[float]]:
+#         """Encode Vietnamese texts to embeddings"""
+#         embeddings = []
+#         for text in texts:
+#             inputs = self.tokenizer(
+#                 text, return_tensors="pt", padding=True, truncation=True, max_length=512
+#             )
+#             with torch.no_grad():
+#                 outputs = self.model(**inputs)
+#                 embedding = outputs.last_hidden_state.mean(dim=1).squeeze().numpy()
+#                 embeddings.append(embedding.tolist())
+#         return embeddings
 
 
 embedding_model = VietnameseEmbedding()
 
 
 # def retrieve_from_collections(db_des: bool,question: str, database_name: str, top_k: int = 8) -> List[Dict]:
-def retrieve_from_collections(
-    db_des: bool, question: str, database_name: str, top_k: int = 12
+def retrieve_from_collections(db_folder,db_path,
+    db_des: bool, question: str, database_name: str, top_k: int = 12,log_callback=None
 ) -> List[Dict]:
     """
     Retrieve relevant documents from sql_tutorial and sql_query_questions collections.
@@ -74,12 +73,18 @@ def retrieve_from_collections(
     Returns:
         List[Dict]: Danh sách các tài liệu liên quan, mỗi tài liệu chứa id, type, content, distance, metadata.
     """
+    logs = []
+
+    def log(msg):
+        if log_callback:
+            log_callback(msg)
+        else:
+            logs.append(msg)
     try:
         # Kết nối tới ChromaDB
-
-        print(os.getcwd())
-        chroma_client_sql_ex = chromadb.PersistentClient(path="pre/sql_ex_collection")
-
+        
+        chroma_client_sql_ex = chromadb.PersistentClient(path=r"pre\sql_ex_collection")
+        # print(chroma_client_sql_ex.list_collections())
         # Lấy collections
         collection_questions = None
         collection_tutorial = None
@@ -88,12 +93,14 @@ def retrieve_from_collections(
                 name="sql_query_questions"
             )
             logger.info("Loaded sql_query_questions collection")
+            log("Loaded sql_query_questions collection")
         except Exception as e:
             logger.warning(f"Could not load sql_query_questions collection: {e}")
+            log(f"Could not load sql_query_questions collection: {e}")
 
-        if not collection_questions and not collection_tutorial:
-            logger.error("Both collections could not be loaded")
-            return []
+        # if not collection_questions and not collection_tutorial:
+        #     logger.error("Both collections could not be loaded")
+        #     return []
 
         # Mã hóa câu hỏi
         question_ner = mask_entities(question)
@@ -125,12 +132,13 @@ def retrieve_from_collections(
                         }
                     )
             else:
+                log("No results found in sql_query_questions collection")
                 logger.warning("No results found in sql_query_questions collection")
         query_embedding_db_des = embedding_model.encode([question])
 
         if db_des:
             # Truy vấn db des
-            db_folder = os.path.join("pre/db", database_name)
+            # db_folder = os.path.join("pre/db", database_name)
 
             chroma_client_db_des = chromadb.PersistentClient(
                 path=os.path.join(db_folder, "db_chroma")
@@ -138,7 +146,9 @@ def retrieve_from_collections(
             try:
                 collection_tutorial = chroma_client_db_des.get_collection(name="db_des")
                 logger.info("Loaded sql_tutorial collection")
+                log("Loaded sql_tutorial collection")
             except Exception as e:
+                log(f"Could not load sql_tutorial collection: {e}")
                 logger.warning(f"Could not load sql_tutorial collection: {e}")
 
             if collection_tutorial:
@@ -165,7 +175,8 @@ def retrieve_from_collections(
                             }
                         )
                 else:
-                    logger.warning("No results found in sql_tutorial collection")
+                    log("No results found in database description collection")
+                    logger.warning("No results found in database description collection")
 
         # Loại bỏ trùng lặp và giới hạn top_k
         seen_ids = set()
@@ -175,7 +186,7 @@ def retrieve_from_collections(
                 unique_elements.append(elem)
                 seen_ids.add(elem["id"])
 
-        return unique_elements[:top_k]
+        return unique_elements[:top_k],"\n".join(logs)
 
     except Exception as e:
         logger.error(f"Error retrieving from collections: {e}")
@@ -222,13 +233,12 @@ def create_prompt_context(
     return "\n".join(db_des_context_parts), "\n".join(sql_ex_context_parts)
 
 
-def save_prompt_context(
-    db_des: bool,
+def save_prompt_context(db_des:bool ,db_folder,db_path,
     results: List[Dict],
     output_sql_ex_file: str = "sql_ex_context",
     output_db_des_file: str = "db_des_context",
     id: int = int(time.time()),
-    db_name: str = "",
+    db_name: str = "",log_callback=None
 ) -> None:
     """
     Lưu context ngắn gọn để đưa vào prompt.
@@ -238,9 +248,17 @@ def save_prompt_context(
         retrieved_results (List[Dict]): Kết quả từ hàm retrieve_from_collections
         output_file (str): Tên file output
     """
+
+    # logs = []
+
+    # def log(msg):
+    #     if log_callback:
+    #         log_callback(msg)
+    #     else:
+    #         logs.append(msg)
     db_des_context, sql_ex_context = create_prompt_context(db_des, results)
 
-    db_folder = os.path.join("pre/db", db_name)
+    # db_folder = os.path.join("pre/db", db_name)
     external_knowledge = os.path.join(db_folder, "external_knowledge")
     os.makedirs(external_knowledge, exist_ok=True)
     output_sql_ex_file = os.path.join(external_knowledge, output_sql_ex_file)
@@ -322,10 +340,19 @@ if __name__ == "__main__":
     question = "liệt kê tên và họ của các cầu thủ đã chơi cho các đội có sân vận động ở California, và đã từng thắng World Series ít nhất một lần"
     #     # question= "Liệt kê tên của những cá nhân quê ở Đà Nẵng và liên quan đến các vụ tội phạm có hơn 1 người bị thương"
     database_name = "baseball_1"
-    question = mask_entities(question)
-    print(question)
-    results = retrieve_from_collections(question=question, database_name=database_name)
-    save_prompt_context(results=results, id=12345, db_name=database_name)
+    # question = mask_entities(question)
+    # print(question)
+    desc_exemplars,_ = retrieve_from_collections(db_folder=r"D:\vitext2sql_vi\vitext2sql\pre\db\baseball_1",db_path="",db_des=True, question=question, database_name=database_name,log_callback=None)
+        
+    # Save prompt context
+    save_prompt_context(
+        db_des=True,
+        db_folder=r"D:\vitext2sql_vi\vitext2sql\pre\db\baseball_1",
+        db_path="",
+        results=desc_exemplars, 
+        id=1234, 
+        db_name=database_name,log_callback=None
+    )
 
     # print("Retrieved elements:")
     # for result in results:

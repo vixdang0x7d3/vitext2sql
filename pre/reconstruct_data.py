@@ -41,7 +41,7 @@ def process_ddl(ddl_file):
     return ddl_file, representatives
 
 
-def compress_ddl(
+def compress_ddl(db_folder,db_path,
     dialect="sqlite",
     db_name="",
     id=1,
@@ -53,10 +53,18 @@ def compress_ddl(
     sqlite_sl_path=None,
     reduce_col=False,
     use_gold_table=False,
-    use_gold_schema=False,
+    use_gold_schema=False,log_callback=None
 ):
+    logs = []
+
+    def log(msg):
+        if log_callback:
+            log_callback(msg)
+        else:
+            logs.append(msg)
     print("Compress DDL files.")
-    db_folder = os.path.join("pre/db", db_name)
+    log("Compress DDL files.")
+    # db_folder = os.path.join("pre/db", db_name)
 
     schema_path = os.path.join(db_folder, "schema")
 
@@ -207,11 +215,14 @@ def compress_ddl(
             prompts += (
                 f"External knowledge that might be helpful: \n{external_knowledge}\n"
             )
-            with open(
-                os.path.join(output_db_des_file, str(id) + ".txt"), encoding="utf-8"
-            ) as a:
-                external_knowledge = a.read()
-            prompts += f"\n{external_knowledge}\n"
+
+            if os.path.exists(os.path.join(output_db_des_file, str(id) + ".txt")):
+                with open(
+                    os.path.join(output_db_des_file, str(id) + ".txt"), encoding="utf-8"
+                ) as a:
+                    external_knowledge = a.read()
+                prompts += f"\n{external_knowledge}\n"
+            log("Extract Database information success")
             f.writelines(prompts)
     else:
         output_path = os.path.join(db_folder, "prompts")

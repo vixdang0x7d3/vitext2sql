@@ -160,7 +160,7 @@ def verify_database(db_path):
     print(prompts)
 
 
-def extract_ddl_to_csv(db_name, output_csv="DDL.csv"):
+def extract_ddl_to_csv(db_folder,db_path,db_name, output_csv="DDL.csv"):
     """
     Trích xuất DDL từ SQLite database và xuất ra file CSV
 
@@ -168,8 +168,8 @@ def extract_ddl_to_csv(db_name, output_csv="DDL.csv"):
         db_path (str): Đường dẫn đến file SQLite database
         output_csv (str): Tên file CSV output (mặc định: 'DDL.csv')
     """
-    db_folder = os.path.join("pre/db", db_name)
-    db_path = os.path.join(db_folder, db_name + ".sqlite")
+    # db_folder = os.path.join("pre/db", db_name)
+    # db_path = os.path.join(db_folder, db_name + ".sqlite")
 
     if not os.path.exists(db_path):
         print(f"File database không tồn tại: {db_path}")
@@ -296,10 +296,10 @@ def build_global_fk_map(cursor):
     return fk_map
 
 
-def export_table_to_json(db_name, table_name, sample_limit=5):
+def export_table_to_json(db_folder,db_path,db_name, table_name, sample_limit=5):
     try:
-        db_folder = os.path.join("db", db_name)
-        db_path = os.path.join(db_folder, db_name + ".sqlite")
+        # db_folder = os.path.join("db", db_name)
+        # db_path = os.path.join(db_folder, db_name + ".sqlite")
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
 
@@ -344,7 +344,7 @@ def export_table_to_json(db_name, table_name, sample_limit=5):
         return False
 
 
-def export_all_tables_to_json(db_name, sample_limit=5, exclude_tables=None):
+def export_all_tables_to_json(db_folder,db_path,db_name, sample_limit=5, exclude_tables=None):
     """
     Xuất tất cả các bảng trong database thành các file JSON riêng biệt
 
@@ -361,8 +361,8 @@ def export_all_tables_to_json(db_name, sample_limit=5, exclude_tables=None):
         exclude_tables = []
 
     try:
-        db_folder = os.path.join("db", db_name)
-        db_path = os.path.join(db_folder, db_name + ".sqlite")
+        # db_folder = os.path.join("db", db_name)
+        # db_path = os.path.join(db_folder, db_name + ".sqlite")
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
 
@@ -389,7 +389,7 @@ def export_all_tables_to_json(db_name, sample_limit=5, exclude_tables=None):
         for i, table_name in enumerate(tables, 1):
             print(f"  [{i}/{len(tables)}] Đang xuất bảng: {table_name}")
 
-            if export_table_to_json(db_name, table_name, sample_limit):
+            if export_table_to_json(db_folder,db_path,db_name, table_name, sample_limit):
                 success_tables.append(table_name)
                 print(f"     Thành công: {table_name}.json")
             else:
