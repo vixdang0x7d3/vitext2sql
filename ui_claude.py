@@ -18,7 +18,7 @@ if root not in sys.path:
 # Import các module từ backend
 try:
     from database_manager import DatabaseManager
-    from llm_client import OpenAIClient, create_ollama_client,GPTChat
+    from llm_client import OpenAIClient, create_ollama_client,GPTChat,GPTChat_sl
     from agent import Agent
     from pre.sqlite import extract_ddl_to_csv, export_all_tables_to_json
     from pre.setup_vector_chromadb import VietnameseRAGSystem
@@ -69,13 +69,13 @@ def init_llm_client():
         # Sử dụng OpenAI client (có thể thay đổi thành Ollama nếu cần)
         # client = OpenAIClient(
         #     model="gpt-4.1",  # Thay đổi model phù hợp
-        #     temperature=0,
+        #     temperature=1,
         #     max_context_length=200_000,
         #     system_prompt=system_prompt,
         # )
-
-        client =  GPTChat(system_prompt=system_prompt,temperature=0)
-        return client
+        client =  GPTChat(system_prompt=system_prompt,temperature=1)
+        client_sl =  GPTChat_sl(system_prompt="",temperature=0)
+        return client,client_sl
     except Exception as e:
         st.error(f"Lỗi khởi tạo LLM client: {e}")
         return None
@@ -282,7 +282,7 @@ def get_available_databases():
         if os.path.isdir(os.path.join(db_root, name))
     ]
 
-client = init_llm_client()
+client,client_sl = init_llm_client()
          
 # ---- Thanh bên (Sidebar) ----
 with st.sidebar:
@@ -345,7 +345,7 @@ with st.sidebar:
             try:
                 st.info("Đang tạo vector database...")
                 rag_system = VietnameseRAGSystem()
-                rag_system.setup_database(db_name)
+                rag_system.setup_database(db_name,st.session_state.db_folder)
                 st.success("Vector database đã được tạo thành công!")
                 st.session_state.db_des = True
             except Exception as e:
@@ -353,7 +353,7 @@ with st.sidebar:
     # Khởi tạo LLM client và agent
     if st.button(" Khởi tạo Agent"):
         with st.spinner("Đang khởi tạo LLM client và agent..."):
-            client = init_llm_client()
+            # client = init_llm_client()
             print(st.session_state.db_path)
             if client:
                 agent, dbman = init_agent(
@@ -445,7 +445,7 @@ if prompt:
                 prompt, 
                 st.session_state.current_db, 
                 st.session_state.db_des, 
-                client,
+                client_sl,
                 log_callback=lambda msg: update_log(msg,logs,id, log_placeholder)
             )
             

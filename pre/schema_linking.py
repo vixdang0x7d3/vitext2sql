@@ -276,32 +276,36 @@ you should think step by step and decide whether this table is related to the ta
 Use foreign key relationships if necessary to determine relevance.
 You should answer Y/N only. If the answer is Y, you should add columns that you think is related in python list format.
 
-Return **a JSON array of exactly 3 elements**, each inside a JSON code block, like this:
+Return exactly 3 JSON object, each inside a JSON code block, like this:
 
 ```json
-  {{
+{{
+"think": "step by step",
+"answer": "Y or N",
+"columns": ["col1","col2"],
+"table name": "table_name"
+}}
+```
+```json
+{{
     "think": "step by step",
     "answer": "Y or N",
     "columns": ["col1","col2"],
     "table name": "table_name"
-  }},
-  {{
-    "think": "step by step",
-    "answer": "Y or N",
-    "columns": ["col1","col2"],
-    "table name": "table_name"
-  }},
-  {{
-    "think": "step by step",
-    "answer": "Y or N",
-    "columns": ["col1","col2"],
-    "table name": "table_name"
-  }}
+}}
+```
+```json
+{{
+"think": "step by step",
+"answer": "Y or N",
+"columns": ["col1","col2"],
+"table name": "table_name"
+}}
 ```
 
 Table info: {0}
 Task: {1}
-External Knowledge:
+
 {2}
 """
 
@@ -386,7 +390,7 @@ def ask_model_sl_(db_folder,db_path,tb_info, task, chat_session, db_name, id,log
         max_try = 2
         tb_text = "\n\n".join(chunk)
         input_prompt = ask_prompt.format(tb_text, task, db_des)
-
+        print("input promt:  "+input_prompt)
         success = False
         while max_try:
             response = chat_session.get_model_response(input_prompt, "json")
