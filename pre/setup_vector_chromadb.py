@@ -1,3 +1,8 @@
+from .utils import (
+
+    get_tb_info
+   
+)
 # main.py
 from typing import List
 import chromadb
@@ -13,8 +18,10 @@ from pathlib import Path
 from langchain.schema import Document
 import os
 
+import ast
 from sentence_transformers import SentenceTransformer
 
+import numpy as np
 
 import time
 from datetime import datetime
@@ -24,7 +31,11 @@ from chromadb import Client, Documents, EmbeddingFunction, Embeddings
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 # Configure logging
 logging.basicConfig(level=logging.INFO)
+
+# from FlagEmbedding import BGEM3FlagModel
+
 logger = logging.getLogger(__name__)
+
 # class BGEM3EmbeddingFunction(EmbeddingFunction):
 #     def __init__(
 #         self, model_name="BAAI/bge-m3", batch_size=12, max_length=1024, use_fp16=True
@@ -85,8 +96,9 @@ class VietnameseEmbedding:
 
 # RAG System
 class VietnameseRAGSystem:
-    def __init__(self):
-        self.embedding_model = VietnameseEmbedding()
+    def __init__(self,embedding_model):
+        # self.embedding_model = BGEM3FlagModel("BAAI/bge-m3", use_fp16=True)
+        self.embedding_model =embedding_model
         self.chroma_client = chromadb.PersistentClient(path=r"D:\vitext2sql_vi\vitext2sql\pre\sql_ex_collection")
         self.collections = {}
         
@@ -228,6 +240,7 @@ class VietnameseRAGSystem:
             # Hàm chuẩn hóa (bỏ dấu câu, viết thường)
             def remove_punctuation(text):
                 text = text.lower()
+                text = text.replace("_", " ")
                 text = re.sub(r"[.,;!?]", " ", text)
                 text = re.sub(r"\s+", " ", text).strip()
                 return text
@@ -268,9 +281,12 @@ class VietnameseRAGSystem:
 
                 print(f"Tải được {len(documents)} document từ thư mục {folder_path}")
                 return documents
-            
+            if "db_des" in [col.name for col in self.chroma_client.list_collections()]:
+                self.chroma_client.delete_collection("db_des")
+            # Tạo collection 
             collection_db_des = self.chroma_client.create_collection(
-                name="db_des")
+                name="db_des", metadata={"hnsw:space": "ip"})
+            
             processed_docs = load_documents_from_txt_folder1(output_dir)
             if not processed_docs:
                 logger.error(f"No documents found in folder {output_dir}")
@@ -282,6 +298,23 @@ class VietnameseRAGSystem:
             print("texts_db_des:"+  texts_db_des[0])
 
             embeddings_db_des = self.embedding_model.encode(texts_db_des)
+            # embeddings_db_des_both = self.embedding_model.encode(
+            #     texts_db_des,
+            #     batch_size=64,
+            #     max_length=1024,
+            #     return_dense=True,
+            #     return_sparse=True,
+            #     return_colbert_vecs=False,
+            # )
+            
+            # embeddings_db_des = np.concatenate(
+            #         [
+            #             embeddings_db_des_both["dense_vecs"],
+            #             embeddings_db_des_both["lexical_weights"]
+            #         ],
+            #         axis=-1
+            #     ) 
+
             BATCH_SIZE = 100  # nhỏ hơn 166
             logger.info(f"Processing {len(texts_db_des)} documents for db_des collection")
             for i in range(0, len(texts_db_des), BATCH_SIZE):
@@ -292,15 +325,185 @@ class VietnameseRAGSystem:
                     embeddings=embeddings_db_des[i:i + BATCH_SIZE]
                 )
 
-            self.collections[database_name] = {
-            "sql_tutorial": collection_db_des
+            # self.collections[database_name] = {
+            # "sql_tutorial": collection_db_des
             # "sql_query_questions": collection_questions
-        }
+        # }
             logger.info(f"Setup completed for database: {database_name}")
             
         except Exception as e:
             logger.error(f"Error setting up database: {e}")
             raise
+
+
+    def setup_vector_db_schema_db(self, database_name: str,db_folder):
+            """Setup database schema and embeddings"""
+            self.chroma_client = chromadb.PersistentClient(path=os.path.join(db_folder, "db_chroma"))
+            try:
+
+                # collection_db_des = None
+            
+                input_file = os.path.join(db_folder,"prompts", database_name+".txt")
+                output_dir = os.path.join(db_folder,"prompts","chunks")
+
+                # Tạo thư mục lưu chunk nếu chưa có
+                os.makedirs(output_dir, exist_ok=True)
+
+                # Đọc file txt
+                with open(input_file, "r", encoding="utf-8") as f:
+                    text = f.read()
+
+                # Chia theo dòng
+                # lines = text.splitlines()
+                tbs = get_tb_info(text)
+                # Hàm chuẩn hóa (bỏ dấu câu, viết thường)
+                def remove_punctuation(text):
+                    text = text.lower()
+                    text = text.replace("_", " ")
+                    # text = re.sub(r"[.,;!?]", " ", text)
+                    text = re.sub(r"\n", ".", text).strip()
+                    text = re.sub(r"\s+", " ", text).strip()
+                    return text
+
+
+                def format_table_block(text_block):
+                    table_name = ""
+                    columns = []
+                    sample_rows_data = []
+
+                    lines = text_block.strip().split("\n")
+                    for line in lines:
+                        line = line.strip()
+                        if line.lower().startswith("table full name:"):
+                            table_name = line.split(":", 1)[1].strip()
+                        elif line.lower().startswith("column name:"):
+                            col_name = line.split(":", 1)[1].split("Type", 1)[0].strip()
+                            columns.append(col_name)
+                        elif line.lower().startswith("sample rows:"):
+                            # Ghép các dòng tiếp theo để parse JSON
+                            sample_rows_str = line.split(":", 1)[1].strip()
+                            json_like_str = sample_rows_str
+                            if not sample_rows_str.endswith("]"):
+                                idx = lines.index(line)
+                                json_like_str = " ".join(lines[idx+1:])
+                            try:
+                                sample_rows_data = ast.literal_eval(json_like_str)
+                            except Exception as e:
+                                print("Lỗi parse sample rows:", e)
+
+                    # Format sample rows thành dạng "cột là giá trị1 hoặc giá trị2 ..."
+                    sample_formatted_parts = []
+                    for col in columns:
+                        values = []
+                        for row in sample_rows_data:
+                            if col in row:
+                                values.append(str(row[col]))
+                        values = list(dict.fromkeys(values))  # bỏ trùng, giữ thứ tự
+                        if values:
+                            sample_formatted_parts.append(f"{col} là " + " hoặc ".join(values))
+
+                    formatted = (
+                        f"Tên bảng: {table_name}\n"
+                        f"Tên các cột: {', '.join(columns)}\n"
+                        f"Dữ liệu mẫu của bảng: " + ", ".join(sample_formatted_parts)
+                    )
+                    return formatted
+
+                # Lọc và xử lý từng dòng
+                chunks = [remove_punctuation(format_table_block(tb)) for tb in tbs if tb.strip()]
+
+                # # Ghép 3 dòng thành 1 chunk
+                # chunk_size = 3
+                # chunks = [
+                #     "\n".join(lines[i:i+chunk_size]) 
+                #     for i in range(0, len(lines), chunk_size)
+                # ]
+
+                # Lưu từng chunk thành file txt riêng
+                for idx, chunk in enumerate(chunks, start=1):
+                    file_path = os.path.join(output_dir, f"chunk_{idx}.txt")
+                    with open(file_path, "w", encoding="utf-8") as f:
+                        f.write(chunk)
+
+                def load_documents_from_txt_folder1(folder_path: str) -> list[Document]:
+                    documents = []
+                    folder = Path(folder_path)
+
+                    for file_path in folder.glob("*.txt"):
+                        with open(file_path, "r", encoding="utf-8") as f:
+                            content = f.read().strip()
+
+                        if content:
+                            document = Document(
+                                page_content=content,
+                                metadata={
+                                    "source": file_path.stem,  # tên file không có .txt
+                                    "source_type": "db_schema"
+                                }
+                            )
+                            documents.append(document)
+
+                    print(f"Tải được {len(documents)} document từ thư mục {folder_path}")
+                    return documents
+                if "db_schema" in [col.name for col in self.chroma_client.list_collections()]:
+                    self.chroma_client.delete_collection("db_schema")
+                # Tạo collection 
+                collection_db_schema = self.chroma_client.create_collection(
+                name="db_schema",metadata={"hnsw:space": "ip"})
+               
+                processed_docs = load_documents_from_txt_folder1(output_dir)
+                if not processed_docs:
+                    logger.error(f"No documents found in folder {output_dir}")
+                    raise ValueError("No documents found for db_schema collection")
+                texts_db_schema = [doc.page_content for doc in processed_docs]
+                metadatas_db_schema = [doc.metadata for doc in processed_docs]
+                ids_db_schema = [f"db_schema{i}" for i in range(len(texts_db_schema))]
+
+                print("texts_db_schema:"+  texts_db_schema[0])
+
+                embeddings_db_schema = self.embedding_model.encode(texts_db_schema)
+                # embeddings_db_schema_both = self.embedding_model.encode(
+                #     texts_db_schema,
+                #     batch_size=64,
+                #     max_length=1024,
+                #     return_dense=True,
+                #     return_sparse=True,
+                #     return_colbert_vecs=False,
+                # )
+
+                # print(f"Dense Embedding: {embeddings_db_schema_both["dense_vecs"]}")
+                # print(f"Sparse Embedding: {embeddings_db_schema_both['lexical_weights']}")
+
+                # embeddings_db_schema = np.concatenate(
+                #     [
+                #         embeddings_db_schema_both["dense_vecs"],
+                #         embeddings_db_schema_both["lexical_weights"]
+                #     ],
+                #     axis=-1
+                # )
+
+                # print(f"Embedding: {embeddings_db_schema}")
+                # print(f"Embedding shape: {embeddings_db_schema.shape}")
+
+                BATCH_SIZE = 100  # nhỏ hơn 166
+                logger.info(f"Processing {len(texts_db_schema)} documents for db_schema collection")
+                for i in range(0, len(texts_db_schema), BATCH_SIZE):
+                    collection_db_schema.add(
+                        documents=texts_db_schema[i:i + BATCH_SIZE],
+                        metadatas=metadatas_db_schema[i:i + BATCH_SIZE],
+                        ids=ids_db_schema[i:i + BATCH_SIZE],
+                        embeddings=embeddings_db_schema[i:i + BATCH_SIZE]
+                    )
+
+            #     self.collections[database_name] = {
+            #     "sql_tutorial": collection_db_des
+            #     # "sql_query_questions": collection_questions
+            # }
+                logger.info(f"Setup vector db for schema db completed : {database_name}")
+                
+            except Exception as e:
+                logger.error(f"Error setting up database: {e}")
+                raise
 # class IndexProcessor:
 #     def __init__(self, chroma_client: chromadb.ClientAPI, emb_func: EmbeddingFunction):
 #         self.client = chroma_client

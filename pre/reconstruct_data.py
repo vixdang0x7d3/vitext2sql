@@ -202,6 +202,15 @@ def compress_ddl(db_folder,db_path,
             if len(prompts) > 200000 and clear_long_eg_des:
                 prompts = clear_description(prompts)
 
+            if os.path.exists(os.path.join(db_folder, "external_knowledge", "filter_values_keyword", f"{id}.txt")):
+                with open(
+                    os.path.join(db_folder, "external_knowledge", "filter_values_keyword", f"{id}.txt"), encoding="utf-8"
+                ) as a:
+                    filter_values_keyword = json.load(a)
+
+                prompts += "\nCandidates for filter value in question:\n"
+                for k, v in filter_values_keyword.items():
+                    prompts += f"  {k}: {v}\n"
             external_knowledge = os.path.join(db_folder, "external_knowledge")
 
             output_sql_ex_file = os.path.join(external_knowledge, "sql_ex_context")
@@ -228,7 +237,7 @@ def compress_ddl(db_folder,db_path,
         output_path = os.path.join(db_folder, "prompts")
         os.makedirs(output_path, exist_ok=True)
         with open(
-            os.path.join(output_path, str(id) + ".txt"), "w", encoding="utf-8"
+            os.path.join(output_path, db_name + ".txt"), "w", encoding="utf-8"
         ) as f:
             prompts = clear_sample_rows(prompts, byte_limit=1000)
             if len(prompts) > 200000 and clear_long_eg_des:

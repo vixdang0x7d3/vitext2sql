@@ -21,3 +21,5 @@ __marimo__/*.html
 data/
 pre/db/
 pre/sql_ex_collection/
+
+lsh_semantic 

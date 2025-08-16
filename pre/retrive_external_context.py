@@ -9,8 +9,10 @@ import time
 import logging
 # import py_vncorenlp
 
-from sentence_transformers import SentenceTransformer
+import numpy as np
 
+from sentence_transformers import SentenceTransformer
+# from FlagEmbedding import BGEM3FlagModel
 
 # Tắt telemetry của ChromaDB
 # ===== 1. Cấu hình logging và tắt telemetry của ChromaDB =====
@@ -54,11 +56,15 @@ class VietnameseEmbedding:
 #         return embeddings
 
 
-embedding_model = VietnameseEmbedding()
+
+# embedding_model = BGEM3FlagModel(
+#     "BAAI/bge-m3",
+#     use_fp16=True
+# )
 
 
 # def retrieve_from_collections(db_des: bool,question: str, database_name: str, top_k: int = 8) -> List[Dict]:
-def retrieve_from_collections(db_folder,db_path,
+def retrieve_from_collections(embedding_model,db_folder,db_path,
     db_des: bool, question: str, database_name: str, top_k: int = 12,log_callback=None
 ) -> List[Dict]:
     """
@@ -103,8 +109,28 @@ def retrieve_from_collections(db_folder,db_path,
         #     return []
 
         # Mã hóa câu hỏi
+        question = question.replace("_", " ")
         question_ner = mask_entities(question)
+        
         query_embedding_ex = embedding_model.encode([question_ner])
+        # query_embedding_ex_both = embedding_model.encode(
+        #     [question_ner],
+        #     batch_size=12,
+        #     max_length=1024,
+        #     return_dense=True,
+        #     return_sparse=True,
+        #     return_colbert_vecs=False,
+        # )
+
+        # query_embedding_ex = np.concatenate(
+        #     [
+        #         query_embedding_ex_both["dense_vecs"],
+        #         query_embedding_ex_both["lexical_weights"]
+        #     ],
+        #     axis=-1
+        # ) 
+
+        
         retrieved_elements = []
 
         # Truy vấn sql_query_questions
@@ -134,6 +160,7 @@ def retrieve_from_collections(db_folder,db_path,
             else:
                 log("No results found in sql_query_questions collection")
                 logger.warning("No results found in sql_query_questions collection")
+        
         query_embedding_db_des = embedding_model.encode([question])
 
         if db_des:
@@ -192,7 +219,90 @@ def retrieve_from_collections(db_folder,db_path,
         logger.error(f"Error retrieving from collections: {e}")
         return []
 
+def check_if_question_relevant(embedding_model,
+    db_folder, db_path, db_des: bool, question: str,
+    database_name: str, top_k: int = 5,
+    distance_threshold: float = 0.2,  # Ngưỡng khoảng cách, càng nhỏ => càng giống
+    log_callback=None
+) -> bool:
+    try:
+        # Encode câu hỏi
+        query_embedding_db_schema = embedding_model.encode([question])
+        # query_embedding_db_schema_both = embedding_model.encode(
+        #     [question],
+        #     batch_size=64,
+        #     max_length=1024,
+        #     return_dense=True,
+        #     return_sparse=True,
+        #     return_colbert_vecs=False,
+        # )
+        
+        # query_embedding_db_schema = np.concatenate(
+        #     [
+        #         query_embedding_db_schema_both["lexical_weights"],
+        #         query_embedding_db_schema_both["dense_vecs"],
+        #     ],
+        #     axis=-1
+        # )
 
+        # Kết nối tới ChromaDB
+        chroma_client_db_schema = chromadb.PersistentClient(
+            path=os.path.join(db_folder, "db_chroma")
+        )
+
+        # Load collection db_schema
+        try:
+            collection_db_schema = chroma_client_db_schema.get_collection(name="db_schema")
+            logger.info("Loaded db_schema collection")
+        except Exception as e:
+            logger.warning(f"Could not load db_schema collection: {e}")
+            return False
+
+        # Truy vấn top_k
+        results = collection_db_schema.query(
+            query_embeddings=query_embedding_db_schema,
+            n_results=top_k,
+            include=["distances"]
+        )
+
+        # Không có kết quả
+        if not results["distances"] or len(results["distances"][0]) == 0:
+            return False
+
+        # Kiểm tra nếu có khoảng cách nào nhỏ hơn hoặc bằng ngưỡng
+        for dist in results["distances"][0]:
+            if dist <= distance_threshold:
+                return True  # Có ít nhất một schema liên quan
+
+        return False  # Không có schema nào đủ gần
+
+    except Exception as e:
+        logger.error(f"Error checking relevance: {e}")
+        return True
+
+def debug_distances(embedding_model,db_folder, question, top_k=5):
+    query_embedding_db_schema = embedding_model.encode([question])
+    # query_embedding_db_schema = embedding_model.encode(
+    #         [question],
+    #         batch_size=64,
+    #         max_length=1024,
+    #         return_dense=True,
+    #         return_sparse=True,
+    #         return_colbert_vecs=False,
+    #     )['sparse+dense']
+    chroma_client_db_schema = chromadb.PersistentClient(
+        path=os.path.join(db_folder, "db_chroma")
+    )
+    collection = chroma_client_db_schema.get_collection(name="db_schema")
+    results = collection.query(
+        query_embeddings=query_embedding_db_schema,
+        n_results=top_k,
+        include=["distances", "documents"]
+    )
+
+    print(f"\nCâu hỏi: {question}")
+    for dist, doc in zip(results["distances"][0], results["documents"][0]):
+        print(f"  Distance: {dist:.4f}  |  Schema: {doc}")
 def create_prompt_context(
     db_des: bool, retrieved_results: List[Dict]
 ) -> tuple[str, str]:
@@ -213,7 +323,7 @@ def create_prompt_context(
     ]
     if sql_examples:
         sql_ex_context_parts.append("**Similar SQL Examples:**")
-        for i, ex in enumerate(sql_examples[:4], 1):
+        for i, ex in enumerate(sql_examples[:6], 1):
             sql = ex["metadata"].get("sql_text", "")
             db = ex["metadata"].get("db_id", "")
             sql_ex_context_parts.append(f"{i}. Question: {ex['content']}")
@@ -337,23 +447,42 @@ def mask_entities(question: str) -> str:
 
 # Ví dụ sử dụng hàm
 if __name__ == "__main__":
-    question = "liệt kê tên và họ của các cầu thủ đã chơi cho các đội có sân vận động ở California, và đã từng thắng World Series ít nhất một lần"
-    #     # question= "Liệt kê tên của những cá nhân quê ở Đà Nẵng và liên quan đến các vụ tội phạm có hơn 1 người bị thương"
-    database_name = "baseball_1"
-    # question = mask_entities(question)
-    # print(question)
-    desc_exemplars,_ = retrieve_from_collections(db_folder=r"D:\vitext2sql_vi\vitext2sql\pre\db\baseball_1",db_path="",db_des=True, question=question, database_name=database_name,log_callback=None)
+    # question = "liệt kê tên và họ của các cầu thủ đã chơi cho các đội có sân vận động ở California, và đã từng thắng World Series ít nhất một lần"
+    # #     # question= "Liệt kê tên của những cá nhân quê ở Đà Nẵng và liên quan đến các vụ tội phạm có hơn 1 người bị thương"
+    # database_name = "baseball_1"
+    # # question = mask_entities(question)
+    # # print(question)
+    # desc_exemplars,_ = retrieve_from_collections(db_folder=r"D:\vitext2sql_vi\vitext2sql\pre\db\baseball_1",db_path="",db_des=True, question=question, database_name=database_name,log_callback=None)
         
-    # Save prompt context
-    save_prompt_context(
-        db_des=True,
-        db_folder=r"D:\vitext2sql_vi\vitext2sql\pre\db\baseball_1",
-        db_path="",
-        results=desc_exemplars, 
-        id=1234, 
-        db_name=database_name,log_callback=None
-    )
+    # # Save prompt context
+    # save_prompt_context(
+    #     db_des=True,
+    #     db_folder=r"D:\vitext2sql_vi\vitext2sql\pre\db\baseball_1",
+    #     db_path="",
+    #     results=desc_exemplars, 
+    #     id=1234, 
+    #     db_name=database_name,log_callback=None
+    # )
 
     # print("Retrieved elements:")
     # for result in results:
     #     print(f"ID: {result['id']}, Type: {result['type']}, Content: {result['content']}, Distance: {result['distance']}, Metadata: {result['metadata']}")
+    # related_questions = [
+    #     "Ai đã giành giải MVP năm 2024 trong giải đấu có id 'L001'?",
+    #     "Những cầu thủ sinh ra ở Hà Nội nào đã tham gia trận đấu All-Star năm 2024?",
+    #     "Tổng lương của cầu thủ 'P001' trên tất cả các đội trong năm 2024 là bao nhiêu?"
+    # ]
+
+    # # Câu hỏi không liên quan
+    # unrelated_questions = [
+    #     "Thủ đô của Pháp là gì",
+    #     "Hệ mặt trời của chúng ta có bao nhiêu hành tinh?",
+    #     "Công thức hóa học của nước là gì?"
+    # ]
+
+    # # Kiểm tra distances
+    # for q in related_questions + unrelated_questions:
+    #     debug_distances(r"D:\vitext2sql_vi\vitext2sql\pre\db\baseball_1", q)
+
+   
+    print()

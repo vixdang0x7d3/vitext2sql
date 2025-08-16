@@ -7,6 +7,8 @@ import glob
 import io
 import gzip
 import base64
+import chromadb
+
 from dotenv import load_dotenv
 # Thêm thư mục gốc vào path để import các module
 load_dotenv()
@@ -22,13 +24,14 @@ try:
     from agent import Agent
     from pre.sqlite import extract_ddl_to_csv, export_all_tables_to_json
     from pre.setup_vector_chromadb import VietnameseRAGSystem
-    from pre.retrive_external_context import retrieve_from_collections, save_prompt_context
+    from pre.retrive_external_context import retrieve_from_collections, save_prompt_context,check_if_question_relevant,VietnameseEmbedding
     from pre.reconstruct_data import compress_ddl
     from pre.schema_linking import ask_model_sl
+    from pre.build_index import main
+    from pre.query_lsh import LSHChromaNormalizer
 except ImportError as e:
     st.error(f"Lỗi import module: {e}")
     st.stop()
-
 # ---- Cấu hình trang ----
 st.set_page_config(
     page_title="SQL Agent Chat",
@@ -44,6 +47,8 @@ if "agent" not in st.session_state:
     st.session_state.agent = None
 if "dbman" not in st.session_state:
     st.session_state.dbman = None
+if  "embedding_model" not in st.session_state:
+    st.session_state.embedding_model = VietnameseEmbedding()
 
 # ---- Khởi tạo LLM Client ----
 @st.cache_resource
@@ -87,10 +92,16 @@ def setup_database(db_name):
     db_folder = os.path.join("pre/db", db_name)
     db_path = os.path.join(db_folder, db_name + ".sqlite")
     
+    
     if not os.path.exists(db_path):
         st.error(f"Không tìm thấy file database: {db_path}")
         return None, None, False
     
+    if not os.path.exists(os.path.join("./lsh_semantic", f"{db_name}_lsh_buckets.sqlite") ):
+        st.info(f"Đang build index cho dữ liệu database: {db_name}")
+        main(db_path=db_path,db_name=db_name)
+        st.success("✅ Build xong index!")
+
     # Tạo schema path
     schema_path = os.path.join(db_folder, "schema")
     os.makedirs(schema_path, exist_ok=True)
@@ -117,15 +128,42 @@ def setup_database(db_name):
             st.success("Đã xuất JSON thành công!")
         except Exception as e: 
             st.error(f"Lỗi xuất JSON: {e}")
-    
+    rag_system = VietnameseRAGSystem(st.session_state.embedding_model)
+    chroma_client = chromadb.PersistentClient(path=os.path.join(db_folder, "db_chroma"))
+    if not os.path.exists(os.path.join(db_folder,"prompts", db_name + ".txt")):
+        st.info("Đang Compress schema...")
+        try:
+            # Compress DDL
+            compress_ddl(db_folder,db_path,
+            db_name=db_name,
+            id=id,
+            add_description=True,
+            add_sample_rows=True,
+            rm_digits=True,
+            schema_linked=False,
+            clear_long_eg_des=True,log_callback=None
+        )   
+             
+            st.success("Đã Compress schema thành công!")
+        except Exception as e:
+            st.error(f"Lỗi Compress schema: {e}")
+        st.info("Đang set up vector db cho schema db ...")
+        try:
+            rag_system.setup_vector_db_schema_db(db_name,db_folder)
+   
+            st.success("Đã set up vector db thành công!")
+        except Exception as e:
+            st.error(f"Lỗi set up vector db: {e}")
+        
+        
     # Kiểm tra vector database
-    vector_db_path = os.path.join(db_folder, "db_chroma")
-    if not os.path.exists(vector_db_path):
+    
+    if "db_des" not in [col.name for col in chroma_client.list_collections()]:
         input_file = os.path.join(db_folder, "db_des", "db_des.txt")
         if os.path.exists(input_file):
             st.info("Đang tạo vector database...")
             try:
-                rag_system = VietnameseRAGSystem()
+                
                 rag_system.setup_database(db_name,db_folder)
                 st.success("Đã tạo vector database thành công!")
             except Exception as e:
@@ -166,7 +204,7 @@ def process_question(id,db_folder,db_path,question, db_name, db_des,client,log_c
     try:
         
         # Retrieve context
-        desc_exemplars,_ = retrieve_from_collections(db_folder,db_path,db_des, question, db_name,log_callback=log_callback)
+        desc_exemplars,_ = retrieve_from_collections(st.session_state.embedding_model,db_folder,db_path,db_des, question, db_name,log_callback=log_callback)
         
         # Save prompt context
         save_prompt_context(
@@ -178,16 +216,16 @@ def process_question(id,db_folder,db_path,question, db_name, db_des,client,log_c
             db_name=db_name,log_callback=log_callback
         )
         
-        # Compress DDL
-        compress_ddl(db_folder,db_path,
-            db_name=db_name,
-            id=id,
-            add_description=True,
-            add_sample_rows=True,
-            rm_digits=True,
-            schema_linked=False,
-            clear_long_eg_des=True,log_callback=log_callback
-        )
+        # # Compress DDL
+        # compress_ddl(db_folder,db_path,
+        #     db_name=db_name,
+        #     id=id,
+        #     add_description=True,
+        #     add_sample_rows=True,
+        #     rm_digits=True,
+        #     schema_linked=False,
+        #     clear_long_eg_des=True,log_callback=log_callback
+        # )
         # Schema linking
         ask_model_sl(
             db_folder,db_path,
@@ -344,7 +382,7 @@ with st.sidebar:
             # Tạo lại vector database sau khi có mô tả
             try:
                 st.info("Đang tạo vector database...")
-                rag_system = VietnameseRAGSystem()
+                rag_system = VietnameseRAGSystem(st.session_state.embedding_model)
                 rag_system.setup_database(db_name,st.session_state.db_folder)
                 st.success("Vector database đã được tạo thành công!")
                 st.session_state.db_des = True
@@ -425,92 +463,113 @@ prompt = st.chat_input("💬 Nhập câu hỏi của bạn ở đây...")
 
 if prompt:
     # Thêm tin nhắn của user
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    
     with st.chat_message("user"):
         st.markdown(prompt)
+    is_relevant  = check_if_question_relevant(st.session_state.embedding_model,st.session_state.db_folder,st.session_state.db_path,st.session_state.db_des, prompt, db_name,top_k=5,distance_threshold=0.57)
     
-    # Xử lý và trả lời
-    with st.chat_message("assistant"):
-        with st.spinner("🤔 Scheama linking and Self refine..."):
-            log_placeholder = st.empty()  # Placeholder cho log real-time
-            logs = []  # Lưu log tạm thời
-            id = int(time.time())
-            st.subheader("📋 Log:")
-            # Xử lý câu hỏi
-            _ = process_question(
-                id,
-                st.session_state.db_folder,
-                st.session_state.db_path,
-                prompt, 
-                st.session_state.current_db, 
-                st.session_state.db_des, 
-                client_sl,
-                log_callback=lambda msg: update_log(msg,logs,id, log_placeholder)
-            )
+    
+    
+    if is_relevant:
+        st.session_state.messages.append({"role": "user", "content": prompt})
+
+        # Xử lý và trả lời
+        with st.chat_message("assistant"):
+            with st.spinner("🤔 Scheama linking and Self refine..."):
+                st.subheader("📋 Log:")
+                log_placeholder = st.empty()  # Placeholder cho log real-time
+                logs = []  # Lưu log tạm thời
+                id = int(time.time())
+                
+                # Xử lý câu hỏi
+                _ = process_question(
+                    id,
+                    st.session_state.db_folder,
+                    st.session_state.db_path,
+                    prompt, 
+                    st.session_state.current_db, 
+                    st.session_state.db_des, 
+                    client_sl,
+                    log_callback=lambda msg: update_log(msg,logs,id, log_placeholder)
+                )
+                
+                success, final_result, final_sql, log_text = self_refine(
+                    id,
+                    st.session_state.db_folder,
+                    prompt,
+                    st.session_state.agent,
+                    log_callback=lambda msg: update_log(msg, logs,id, log_placeholder)
+                )
+
+
+                if success:
+                    # Tạo nội dung phản hồi
+                    assistant_response = {
+                        "id": id,
+                        "log_body": "",
+                        "sql_body": final_sql or "-- Không có SQL được tạo",
+                        "results_data": final_result
+                    }
+                    
+                    # # Hiển thị log cuối cùng
+                    
+                    update_log( "Đã xử lý thành công!", logs,id,log_placeholder)
+                    
+                    # st.text_area(
+                    #     "Processing Log", 
+                    #     value="\n".join(logs), 
+                    #     height=150, 
+                    #     key=f"current_log_{assistant_response['id']}",
+                    #     disabled=True
+                    # )
+                    assistant_response["log_body"] = "\n".join(logs)
+
+                    st.subheader(" Final SQL:")
+                    st.code(assistant_response["sql_body"], language="sql")
+
             
-            success, final_result, final_sql, log_text = self_refine(
-                id,
-                st.session_state.db_folder,
-                prompt,
-                st.session_state.agent,
-                log_callback=lambda msg: update_log(msg, logs,id, log_placeholder)
-            )
 
+                    # --- Trong phần hiển thị ---
+                    st.markdown("---")
+                    st.subheader(" Query Results:")
+                    results_data = decode_dataframe(assistant_response["results_data"])
 
-            if success:
-                # Tạo nội dung phản hồi
-                assistant_response = {
-                    "id": id,
-                    "log_body": "",
-                    "sql_body": final_sql or "-- Không có SQL được tạo",
-                    "results_data": final_result
-                }
-                
-                # # Hiển thị log cuối cùng
-                
-                update_log( "Đã xử lý thành công!", logs,id,log_placeholder)
-                
-                # st.text_area(
-                #     "Processing Log", 
-                #     value="\n".join(logs), 
-                #     height=150, 
-                #     key=f"current_log_{assistant_response['id']}",
-                #     disabled=True
-                # )
-                assistant_response["log_body"] = "\n".join(logs)
-
-                st.subheader(" Final SQL:")
-                st.code(assistant_response["sql_body"], language="sql")
-
-        
-
-                # --- Trong phần hiển thị ---
-                st.markdown("---")
-                st.subheader(" Query Results:")
-                results_data = decode_dataframe(assistant_response["results_data"])
-
-                if results_data is not None:
-                    if isinstance(results_data, pd.DataFrame):
-                        st.dataframe(
-                            results_data, 
-                            use_container_width=True, 
-                            hide_index=True
-                        )
+                    if results_data is not None:
+                        if isinstance(results_data, pd.DataFrame):
+                            st.dataframe(
+                                results_data, 
+                                use_container_width=True, 
+                                hide_index=True
+                            )
+                        else:
+                            st.write(results_data)
                     else:
-                        st.write(results_data)
+                        st.info("Không có dữ liệu để hiển thị")
+                    assistant_response["results_data"] = results_data
+
+                    # Lưu vào lịch sử
+                    st.session_state.messages.append({
+                        "role": "assistant", 
+                        "content": assistant_response
+                    })
+
                 else:
-                    st.info("Không có dữ liệu để hiển thị")
-                assistant_response["results_data"] = results_data
-
-                # Lưu vào lịch sử
-                st.session_state.messages.append({
-                    "role": "assistant", 
-                    "content": assistant_response
-                })
-
-            else:
-                st.error("Có lỗi xảy ra khi xử lý câu hỏi!")
+                    st.error("Có lỗi xảy ra khi xử lý câu hỏi!")
+    else:
+        with st.chat_message("assistant"):
+            st.warning("Câu hỏi này không liên quan đến cơ sở dữ liệu hiện tại.")
+            st.info("💡 Bạn có thể:")
+            st.markdown("""
+            - Đặt câu hỏi khác liên quan đến **database hiện tại**.
+            - Hoặc chọn lại **database** khác phù hợp hơn.
+            """)
+            
+            # Gợi ý nếu muốn
+            # related_topics = get_related_topics(db_folder, top_k=3)
+            related_topics=["Cầu thủ 'P002' đã đánh được bao nhiêu home run trong giai đoạn hậu mùa giải năm 2024?","Cầu thủ 'P003' đã học tại trường đại học nào vào năm 2010?","ERA trung bình của các cầu thủ trong đội 'T001' cho mùa giải 2024 là bao nhiêu?"]
+            if related_topics:
+                st.subheader("🔍 Chủ đề gợi ý:")
+                for topic in related_topics:
+                    st.write(f"- {topic}")  
 # ---- Footer ----
 st.markdown("---")
 st.markdown(" **SQL Agent Chat** - Powered by AI")

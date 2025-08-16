@@ -24,7 +24,7 @@ import re
 import numpy as np
 from itertools import islice
 import time
-
+from .query_lsh import LSHChromaNormalizer
 
 def reduce_columns(sql: str, subset_columns: set[str]) -> str:
     # Bắt đúng tên bảng
@@ -79,12 +79,27 @@ def reduce_ddl(db_folder,db_path,linked_json="", reduce_col=False, db_name="", i
 
     table_names = []
     columns = {}
-
+    candidates = {}
     for tb in tbs:
         if "answer" in tb:
             if tb["answer"] == "Y":
                 table_names.append(tb["table name"])
                 columns[tb["table name"]] = tb["columns"]
+        elif "filter_values" in tb:
+            if tb["filter_values"]:
+                lsh = LSHChromaNormalizer(db_path=db_path,db_name=db_name)
+                for filter_value in tb["filter_values"] :
+                    lsh_dict = lsh.normalize(filter_value,top_k=10)
+                    candidates[filter_value] = lsh_dict["rep"]
+                os.makedirs(os.path.join(db_folder,"external_knowledge","filter_values_keyword"), exist_ok=True)
+                # Lưu ra file JSON
+                os.makedirs(os.path.join(db_folder, "external_knowledge", "filter_values_keyword"), exist_ok=True)
+                with open(
+                    os.path.join(db_folder, "external_knowledge", "filter_values_keyword", f"{id}.txt"),
+                    "w",
+                    encoding="utf-8"
+                ) as f:
+                    f.write(json.dumps(candidates, ensure_ascii=False, indent=2))
         else:
             raise NotImplementedError
             print(tb)
@@ -203,7 +218,7 @@ def ask_model_sl(db_folder,db_path,task, id, db_name,chat_session,log_callback=N
     output_path = os.path.join(db_folder, "prompts")
 
     # assert len(tb_info_pth) == 1
-    with open(os.path.join(output_path, str(id) + ".txt"), encoding="utf-8") as f:
+    with open(os.path.join(output_path, db_name + ".txt"), encoding="utf-8") as f:
         tb_info = f.read()
     if len(tb_info) > 20000:
         # linked_dic = {}
@@ -276,24 +291,8 @@ you should think step by step and decide whether this table is related to the ta
 Use foreign key relationships if necessary to determine relevance.
 You should answer Y/N only. If the answer is Y, you should add columns that you think is related in python list format.
 
-Return exactly 3 JSON object, each inside a JSON code block, like this:
+Return each JSON object for each table inside a JSON code block, like this:
 
-```json
-{{
-"think": "step by step",
-"answer": "Y or N",
-"columns": ["col1","col2"],
-"table name": "table_name"
-}}
-```
-```json
-{{
-    "think": "step by step",
-    "answer": "Y or N",
-    "columns": ["col1","col2"],
-    "table name": "table_name"
-}}
-```
 ```json
 {{
 "think": "step by step",
@@ -308,7 +307,102 @@ Task: {1}
 
 {2}
 """
+ask_task_prompt = """
+You are extracting the exact words which could be a potential filter values from the user's question below that correspond to the tables and columns above.
+If it seem like dont have the filter value in question just leave it a blank list.
 
+Return JSON object, inside a JSON code block, like this:
+
+```json
+{{
+"filter_values": ["Việt Nam", "1990", "Hà Nội"]
+}}
+```
+
+User's question: {0}
+
+{1}
+"""
+
+def ask_model_sl_(db_folder,db_path,tb_info, task, chat_session, db_name, id,log_callback=None):
+    tbs = get_tb_info(tb_info)
+    linked = []
+    logs = []
+
+    def log(msg):
+        if log_callback:
+            log_callback(msg)
+        else:
+            logs.append(msg)
+
+    # Đọc external knowledge
+    # db_folder = os.path.join("pre/db", db_name)
+    external_knowledge_path = os.path.join(db_folder, "external_knowledge")
+
+    db_des_file = os.path.join(external_knowledge_path, "db_des_context", f"{id}.txt")
+    if os.path.exists(db_des_file):
+        with open(db_des_file, encoding="utf-8") as f:
+            external_knowledge = f.read()
+        db_des = f"External knowledge that might be helpful: \n{external_knowledge}\n"
+    else:
+        db_des = ""
+
+    # Hàm chia list thành các chunk n phần tử
+    def chunk_list(lst, n):
+        for i in range(0, len(lst), n):
+            yield lst[i : i + n]
+            
+    chat_session.init_messages()
+
+    for chunk in chunk_list(tbs, 5):  # mỗi lần  bảng
+        max_try = 2
+        tb_text = "\n\n".join(chunk)
+        input_prompt = ask_prompt.format(tb_text, task, db_des)
+        print("input promt:  "+input_prompt)
+        success = False
+        while max_try:
+            response = chat_session.get_model_response(input_prompt, "json")
+            # time.sleep(0.5)
+            print(response)  # debug
+            if len(response) == 1:
+                print("len la 1")
+            try:
+                # response là list JSON string -> parse từng cái
+                for item, tb in zip(response, chunk):
+                    data = json.loads(item)
+                    log(json.dumps(data, indent=4, ensure_ascii=False))
+                    assert data["answer"] in ["Y", "N"], (
+                        'data["answer"] should be in ["Y", "N"]'
+                    )
+                    # table_name = re.search(r'^Table full name:\s*(.+)$', tb, re.MULTILINE).group(1)
+                    # data["table name"] = table_name
+                    linked.append(data)
+                success = True
+                break  # thoát vòng while nếu thành công
+            except Exception as e:
+                max_try -= 1
+                input_prompt = f"{str(e)}. Please generate again."
+
+        if not success:
+            for tb in chunk:
+                table_name = re.search(
+                    r"^Table full name:\s*(.+)$", tb, re.MULTILINE
+                ).group(1)
+                print("Failed", table_name)
+
+    input_task_prompt = ask_task_prompt.format(task, db_des)
+    response = chat_session.get_model_response(input_task_prompt, "json")
+    print("task res")
+    print(response)
+    data = json.loads(response[0])
+    log(json.dumps(data, indent=4, ensure_ascii=False))
+   
+    linked.append(data)
+    return linked
+
+
+# ask_model_sl()
+# reduce_ddl(reduce_col=True)
 # def ask_model_sl_(tb_info, task, chat_session,db_name,id):
 #     tbs = get_tb_info(tb_info)
 #     # external = get_external(tb_info)
@@ -356,74 +450,3 @@ Task: {1}
 
 
 #     return linked
-def ask_model_sl_(db_folder,db_path,tb_info, task, chat_session, db_name, id,log_callback=None):
-    tbs = get_tb_info(tb_info)
-    linked = []
-    logs = []
-
-    def log(msg):
-        if log_callback:
-            log_callback(msg)
-        else:
-            logs.append(msg)
-
-    # Đọc external knowledge
-    # db_folder = os.path.join("pre/db", db_name)
-    external_knowledge_path = os.path.join(db_folder, "external_knowledge")
-
-    db_des_file = os.path.join(external_knowledge_path, "db_des_context", f"{id}.txt")
-    if os.path.exists(db_des_file):
-        with open(db_des_file, encoding="utf-8") as f:
-            external_knowledge = f.read()
-        db_des = f"External knowledge that might be helpful: \n{external_knowledge}\n"
-    else:
-        db_des = ""
-
-    # Hàm chia list thành các chunk n phần tử
-    def chunk_list(lst, n):
-        for i in range(0, len(lst), n):
-            yield lst[i : i + n]
-            
-    chat_session.init_messages()
-
-    for chunk in chunk_list(tbs, 3):  # mỗi lần 3 bảng
-        max_try = 2
-        tb_text = "\n\n".join(chunk)
-        input_prompt = ask_prompt.format(tb_text, task, db_des)
-        print("input promt:  "+input_prompt)
-        success = False
-        while max_try:
-            response = chat_session.get_model_response(input_prompt, "json")
-            # time.sleep(0.5)
-            print(response)  # debug
-            if len(response) == 1:
-                print("len la 1")
-            try:
-                # response là list JSON string -> parse từng cái
-                for item, tb in zip(response, chunk):
-                    data = json.loads(item)
-                    log(json.dumps(data, indent=4, ensure_ascii=False))
-                    assert data["answer"] in ["Y", "N"], (
-                        'data["answer"] should be in ["Y", "N"]'
-                    )
-                    # table_name = re.search(r'^Table full name:\s*(.+)$', tb, re.MULTILINE).group(1)
-                    # data["table name"] = table_name
-                    linked.append(data)
-                success = True
-                break  # thoát vòng while nếu thành công
-            except Exception as e:
-                max_try -= 1
-                input_prompt = f"{str(e)}. Please generate again."
-
-        if not success:
-            for tb in chunk:
-                table_name = re.search(
-                    r"^Table full name:\s*(.+)$", tb, re.MULTILINE
-                ).group(1)
-                print("Failed", table_name)
-
-    return linked
-
-
-# ask_model_sl()
-# reduce_ddl(reduce_col=True)
