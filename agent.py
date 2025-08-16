@@ -45,12 +45,7 @@ class Agent:
         self.db_manager = db_manager
         self.llm = client
 
-    def self_refine(
-        self,
-        question,
-        base_prompt,
-        log_callback=None
-    ):
+    def self_refine(self, question, base_prompt, log_callback=None):
         self_refine_prompt = initial_prompt.format(
             question=question,
             base_prompt=base_prompt,
@@ -59,14 +54,12 @@ class Agent:
 
         iter = 0
         error_rec = bitarray()
-        empty_rec = bitarray()
 
         consistency_state = ConsistencyState.create_empty()
 
         final_sql = None
         final_result = None
         logs = []
-
 
         def log(msg):
             if log_callback:
@@ -91,8 +84,8 @@ class Agent:
                 print("Error generating SQL")
                 break
 
-            log(f"Iteration {iter+1}: Generated SQL:\n{response_sql}")
-            
+            log(f"Iteration {iter + 1}: Generated SQL:\n{response_sql}")
+
             print(f"Try to run SQL in self-refine - Iteration {iter + 1}")
             print(f"SQL:\n{response_sql}")
 
@@ -103,35 +96,27 @@ class Agent:
             )
 
             if executed_result.success:
-                log(f"Executed successfully, rows affected: {executed_result.rows_affected}")
+                log(
+                    f"Executed successfully, rows affected: {executed_result.rows_affected}"
+                )
             else:
-                log(f"Execution failed: {executed_result.error_type} - {executed_result.error_message}")
+                log(
+                    f"Execution failed: {executed_result.error_type} - {executed_result.error_message}"
+                )
 
-
-           
             if not executed_result.success:
                 error_rec.append(1)
-                empty_rec.append(0)
-            elif executed_result.rows_affected == 0:
-                error_rec.append(0)
-                empty_rec.append(1)
             else:
                 error_rec.append(0)
-                empty_rec.append(0)
 
             # Early stop check for repeating failure
             if len(error_rec) > self.early_stop:
                 last_four_errors = error_rec[:-4]
-                last_four_empty = empty_rec[:-4]
                 if all(last_four_errors):  # all bits are 1
                     print("Repetitive execution failure, stopping")
                     break
-                elif all(last_four_empty):
-                    print("Repetitive empty result, stopping")
-                    break
 
-            # Handle successful execution
-            if executed_result.success and executed_result.rows_affected != 0:
+            if executed_result.success:
                 # Compressed query result for more efficient processing
                 compressed_data = seripress_df(executed_result.data)
 
@@ -194,20 +179,15 @@ class Agent:
 
         if len(error_rec) > 0:
             error_count = error_rec.count(1)
-            empty_count = error_rec.count(1)
-            successful = (~error_rec & ~empty_rec).count()
+            successful = len(error_rec) - error_count
 
             print(
-                f"Execution statistics: {successful} successes, {error_count} failures, {empty_count} empty results"
+                f"Execution statistics: {successful} successes, {error_count} failures"
             )
             print(f"Success rate: {successful / len(error_rec) * 100:.1f}%")
             print(
                 "Error pattern (last 10): "
                 f"{error_rec[-10:].to01() if len(error_rec) >= 10 else error_rec.to01()}"
-            )
-            print(
-                "Empty pattern (last 10): "
-                f"{empty_rec[-10:].to01() if len(empty_rec) >= 10 else empty_rec.to01()}"
             )
 
         # notify user and log status
@@ -240,7 +220,7 @@ class Agent:
         print("=== Health Check ===")
 
         # Test database
-        print("fix "+ self.sqlite_path)
+        print("fix " + self.sqlite_path)
         try:
             result = self.db_manager.exec_query_sqlite(
                 "SELECT 1", self.sqlite_path, save_path=None

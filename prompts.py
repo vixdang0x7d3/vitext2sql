@@ -37,7 +37,11 @@ Revelent database entities and some additional information that may be useful to
 consistency_prompt = """Please check the answer again by reviewing the question:
 {question}
 
-Review RELEVANT TABLES and COLUMNS and POSSIBLE CONDITIONS and then give the final SQL query. Don't output other queries. If you think the answer is right, just output the current SQL.
+Instructions:
+- Review RELEVANT TABLES and COLUMNS and POSSIBLE CONDITIONS and then give the final SQL query.
+- Don't output other queries. 
+- If you think the answer is right, just output the current SQL.
+- If the current answer is "Empty", just output the current SQL.
 
 If the task description does not specify the number of decimal places, retain all decimals to four places.
 

@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 import pandas as pd
@@ -13,11 +13,12 @@ from prompts import consistency_prompt
 
 @dataclass
 class ValidationResult:
-    is_valid: bool
-    nested_values: list[str]
-    empty_columns: list[str]
-    processed_data: dict
-    normalized_df_str: str
+    is_empty: bool = False
+    is_valid: bool = False
+    nested_values: list[str] = field(default_factory=list)
+    empty_columns: list[str] = field(default_factory=list)
+    processed_data: dict = field(default_factory=dict)
+    normalized_df_str: str = "empty"
 
 
 @dataclass
@@ -74,6 +75,11 @@ def validate_compressed_result(compressed_data: dict) -> ValidationResult:
 
     # Decompress to work with DataFrame
     df = deseripress_df(compressed_data)
+    if df.empty:
+        return ValidationResult(
+            is_empty=True,
+            is_valid=True,
+        )
 
     nested_values = find_nested_values(df)
     normalize_df_str = get_values_from_table(df)
@@ -129,8 +135,12 @@ def build_refinement_prompt(
 
     df = deseripress_df(validation_result.processed_data)
 
-    prompt += f"Current answer: \n{df.to_csv(index=False)}"
-    prompt += f"Current sql:\n{response}"
+    if not df.empty:
+        prompt += f"Current answer: \n{df.to_csv(index=False)}"
+    else:
+        prompt += "Current answer: Empty"
+
+    prompt += f"Current SQL:\n{response}"
 
     if validation_result.nested_values:
         prompt += f"Values {validation_result.nested_values} are nested. Please correct them. e.g. Transfer '[\nA,\n B\n]' to 'A, B'.\n"
@@ -159,7 +169,7 @@ def process_result(
         db_type: type of database engine (sqlite, pgsql, duckdb)
 
     Returns:
-        tuple of (success,refinement_prompt, updated_state)
+        tuple of (success, refinement_prompt, updated_state)
     """
 
     validation_result = validate_compressed_result(compressed_data)

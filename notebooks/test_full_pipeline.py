@@ -65,12 +65,15 @@ def _(engine, mo):
     return
 
 
-app._unparsable_cell(
-    r"""
-    pragma table_info('cầu_thủ')
-    """,
-    name="_"
-)
+@app.cell
+def _(engine, mo):
+    _df = mo.sql(
+        f"""
+        pragma table_info('cầu_thủ')
+        """,
+        engine=engine
+    )
+    return
 
 
 @app.cell
@@ -126,27 +129,46 @@ def _(
 
 
 @app.cell
+def _(OpenAIClient):
+    sl_client = OpenAIClient(
+        model="o3-2025-04-16", 
+        max_context_length=200_000,
+        system_prompt="",
+    )
+    return (sl_client,)
+
+
+@app.cell
 def _(
     ask_model_sl,
     compress_ddl,
     db_des,
     db_folder,
     db_name,
+    db_path,
     os,
     question,
     retrieve_from_collections,
     save_prompt_context,
+    sl_client,
     time,
 ):
     id = int(time.time())
 
-    desc_exemplars = retrieve_from_collections(db_des, question, db_name)
+    desc_exemplars, logs = retrieve_from_collections(db_folder, db_path, db_des, question, db_name)
 
     save_prompt_context(
-        db_des=db_des, results=desc_exemplars, id=id, db_name=db_name
+        db_des=db_des, 
+        db_folder=db_folder, 
+        db_path=db_path,
+        results=desc_exemplars, 
+        id=id, 
+        db_name=db_name
     )
 
     compress_ddl(
+        db_folder=db_folder,
+        db_path=db_path,
         db_name=db_name,
         id=id,
         add_description=True,
@@ -157,8 +179,11 @@ def _(
     )
 
     ask_model_sl(
+        db_folder,
+        db_path,
         task=question,
         id=id,
+        chat_session=sl_client,
         db_name=db_name,
     )
 
