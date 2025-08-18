@@ -65,7 +65,7 @@ def reduce_columns(sql: str, subset_columns: set[str]) -> str:
     return new_sql
 
 
-def reduce_ddl(db_folder,db_path,linked_json="", reduce_col=False, db_name="", id=1,log_callback=None):
+def reduce_ddl(db_folder,db_path,linked_json="", reduce_col=False, db_name="", id=1,log_callback=None,model=None):
     print("Doing schema linking")
     logs = []
 
@@ -87,7 +87,7 @@ def reduce_ddl(db_folder,db_path,linked_json="", reduce_col=False, db_name="", i
                 columns[tb["table name"]] = tb["columns"]
         elif "filter_values" in tb:
             if tb["filter_values"]:
-                lsh = LSHChromaNormalizer(db_path=db_path,db_name=db_name)
+                lsh = LSHChromaNormalizer(db_path=db_path,db_name=db_name,model=model)
                 for filter_value in tb["filter_values"] :
                     lsh_dict = lsh.normalize(filter_value,top_k=10)
                     candidates[filter_value] = lsh_dict["rep"]
@@ -192,7 +192,7 @@ def reduce_ddl(db_folder,db_path,linked_json="", reduce_col=False, db_name="", i
     )
 
 
-def ask_model_sl(db_folder,db_path,task, id, db_name,chat_session,log_callback=None):
+def ask_model_sl(db_folder,db_path,task, id, db_name,chat_session,log_callback=None,model=None):
     
     logs = []
 
@@ -253,7 +253,7 @@ def ask_model_sl(db_folder,db_path,task, id, db_name,chat_session,log_callback=N
             linked_json=os.path.join(output_path, str(id) + ".txt"),
             reduce_col=True,
             db_name=db_name,
-            id=id,log_callback=log_callback
+            id=id,log_callback=log_callback,model=model
         )
     else:
         output_path = os.path.join(db_folder, "final_context_prompts")
@@ -289,7 +289,7 @@ ask_prompt = """
 You are doing table level schema linking. Given tables with schema information and the task,
 you should think step by step and decide whether this table is related to the task.Some information may be in related tables not just in these tables.
 Use foreign key relationships if necessary to determine relevance.
-You should answer Y/N only. If the answer is Y, you should add columns that you think is related in python list format.
+You should answer Y/N only. If the answer is Y, you should add columns that you think is related in python list format.You should response in vietnamese for "think" part 
 
 Return each JSON object for each table inside a JSON code block, like this:
 
@@ -370,10 +370,21 @@ def ask_model_sl_(db_folder,db_path,tb_info, task, chat_session, db_name, id,log
                 # response là list JSON string -> parse từng cái
                 for item, tb in zip(response, chunk):
                     data = json.loads(item)
-                    log(json.dumps(data, indent=4, ensure_ascii=False))
+                    
                     assert data["answer"] in ["Y", "N"], (
                         'data["answer"] should be in ["Y", "N"]'
                     )
+                    readable_log = (
+                        f"Bảng: {data.get('table name', tb)} \n"
+                        f"- Trả lời: {'Có liên quan tới câu hỏi' if data['answer'] == 'Y' else 'Không liên quan'}"
+                        f"{(
+                            f'\n- Cột liên quan: {', '.join(data.get('columns', []))}\n- Giải thích: {data.get('think', 'Không có giải thích')}'
+                            if data['answer'] == 'Y'
+                            else f'\n- Giải thích: {data.get("think", "Không có giải thích")}'
+                        )}"
+                    )
+                    # readable_log = "a"
+                    log(readable_log)
                     # table_name = re.search(r'^Table full name:\s*(.+)$', tb, re.MULTILINE).group(1)
                     # data["table name"] = table_name
                     linked.append(data)

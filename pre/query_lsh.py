@@ -4,7 +4,7 @@ from typing import List, Dict, Any
 import re
 import unicodedata
 import numpy as np
-from sentence_transformers import SentenceTransformer
+# from sentence_transformers import SentenceTransformer
 import chromadb
 
 # ====== CẤU HÌNH ======
@@ -43,8 +43,8 @@ def normalize_text(s):
 
 # ====== QUERY PIPELINE ======
 class LSHChromaNormalizer:
-    def __init__(self,db_path="",db_name=""):
-        self.model = SentenceTransformer(MODEL_NAME)
+    def __init__(self,db_path="",db_name="",model=None):
+        self.model = model
         self.hp = np.load(HYPERPLANES_NPY).astype(np.float32)
         self.client = chromadb.PersistentClient(path=CHROMA_DIR)
         self.coll = self.client.get_collection(name=db_name)
@@ -74,7 +74,7 @@ class LSHChromaNormalizer:
     def normalize(self,  user_value: str, top_k: int = 5) -> Dict[str, Any]:
         user_value=normalize_text(user_value)
         # 1) encode & hash
-        q = self.model.encode([user_value], normalize_embeddings=True)[0]
+        q = np.array(self.encode([user_value])[0], dtype=np.float32)
         bits = simhash_bits(q, self.hp)
         sigs = band_signatures(bits)
 
@@ -97,7 +97,7 @@ class LSHChromaNormalizer:
         print("[DEBUG] embs shape:", getattr(embs, "shape", None))
         
         # 4) rerank theo cosine trong tập nhỏ
-        q = q.astype(np.float32)
+        # q = q.astype(np.float32)
         print("[DEBUG] q shape:", getattr(q, "shape", None))
         sims = (embs @ q).tolist()
         items = list(zip(cand_ids, docs, sims))

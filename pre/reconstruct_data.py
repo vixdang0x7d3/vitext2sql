@@ -208,7 +208,7 @@ def compress_ddl(db_folder,db_path,
                 ) as a:
                     filter_values_keyword = json.load(a)
 
-                prompts += "\nCandidates for filter value in question:\n"
+                prompts += "\nCandidates keyword for filter value in question:\n"
                 for k, v in filter_values_keyword.items():
                     prompts += f"  {k}: {v}\n"
             external_knowledge = os.path.join(db_folder, "external_knowledge")
@@ -222,7 +222,7 @@ def compress_ddl(db_folder,db_path,
             ) as a:
                 external_knowledge = a.read()
             prompts += (
-                f"External knowledge that might be helpful: \n{external_knowledge}\n"
+                f"\nExternal knowledge that might be helpful: \n{external_knowledge}\n"
             )
 
             if os.path.exists(os.path.join(output_db_des_file, str(id) + ".txt")):

@@ -133,7 +133,7 @@ class VietnameseRAGSystem:
             #     text = text.lower()
             #     # Xóa dấu phẩy, chấm, chấm phẩy, chấm than, hỏi
             #     text = re.sub(r"[.,;!?]", " ", text)
-            #     # Nhưng giữ lại dấu . trong tên người hoặc số liệu
+            #     text = text.replace("_", " ")
             #     text = re.sub(r"\s+", " ", text).strip()
             #     return text
             
@@ -240,7 +240,7 @@ class VietnameseRAGSystem:
             # Hàm chuẩn hóa (bỏ dấu câu, viết thường)
             def remove_punctuation(text):
                 text = text.lower()
-                text = text.replace("_", " ")
+                # text = text.replace("_", " ")
                 text = re.sub(r"[.,;!?]", " ", text)
                 text = re.sub(r"\s+", " ", text).strip()
                 return text
@@ -360,7 +360,7 @@ class VietnameseRAGSystem:
                 def remove_punctuation(text):
                     text = text.lower()
                     text = text.replace("_", " ")
-                    # text = re.sub(r"[.,;!?]", " ", text)
+                    text = re.sub(r"[.,;!?]", " ", text)
                     text = re.sub(r"\n", ".", text).strip()
                     text = re.sub(r"\s+", " ", text).strip()
                     return text

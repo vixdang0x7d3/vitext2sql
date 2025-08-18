@@ -5,7 +5,7 @@ from typing import List, Tuple
 import re
 import unicodedata
 import numpy as np
-from sentence_transformers import SentenceTransformer
+# from sentence_transformers import SentenceTransformer
 import chromadb
 
 # ======================== CẤU HÌNH ========================
@@ -224,7 +224,7 @@ def normalize_text(s):
 #     print(f"✅ Build xong. Chroma tại: {CHROMA_DIR}")
 #     print(f"✅ Buckets LSH tại: {BUCKETS_DB}")
 #     print(f"✅ Hyperplanes: {HYPERPLANES_NPY}")
-def main(db_path="",db_name=""):
+def main(db_path="",db_name="",model=None):
     import sqlite3, hashlib
 
 
@@ -240,8 +240,8 @@ def main(db_path="",db_name=""):
     except Exception:
         pass
 
-    model = SentenceTransformer(MODEL_NAME)
-    dim = model.encode(["probe"], normalize_embeddings=True).shape[1]
+    # model = SentenceTransformer(MODEL_NAME)
+    dim = len(model.encode(["probe"])[0])
     hp = ensure_hyperplanes(dim)
     init_bucket_store(db_name=db_name)
 
@@ -261,7 +261,7 @@ def main(db_path="",db_name=""):
     for i in range(0, len(all_values), EMBED_BATCH):
         chunk = all_values[i:i+EMBED_BATCH]
         chunk_norm_text = [normalize_text(i) for i in chunk]
-        vecs = model.encode(chunk_norm_text, normalize_embeddings=True)
+        vecs = model.encode(chunk_norm_text)
 
         entries = []
         for val, emb in zip(chunk, vecs):
@@ -270,7 +270,7 @@ def main(db_path="",db_name=""):
             item_ids.append(item_id)
             docs.append(val)
             # metas.append({})  
-            embs.append(emb.tolist())
+            embs.append(emb)
 
             bits = simhash_bits(emb, hp)
             sigs = band_signatures(bits)

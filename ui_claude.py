@@ -8,7 +8,7 @@ import io
 import gzip
 import base64
 import chromadb
-
+from datetime import datetime
 from dotenv import load_dotenv
 # Thêm thư mục gốc vào path để import các module
 load_dotenv()
@@ -28,7 +28,7 @@ try:
     from pre.reconstruct_data import compress_ddl
     from pre.schema_linking import ask_model_sl
     from pre.build_index import main
-    from pre.query_lsh import LSHChromaNormalizer
+    # from pre.query_lsh import LSHChromaNormalizer
 except ImportError as e:
     st.error(f"Lỗi import module: {e}")
     st.stop()
@@ -99,8 +99,8 @@ def setup_database(db_name):
     
     if not os.path.exists(os.path.join("./lsh_semantic", f"{db_name}_lsh_buckets.sqlite") ):
         st.info(f"Đang build index cho dữ liệu database: {db_name}")
-        main(db_path=db_path,db_name=db_name)
-        st.success("✅ Build xong index!")
+        main(db_path=db_path,db_name=db_name,model=st.session_state.embedding_model)
+        st.success(" Build xong index!")
 
     # Tạo schema path
     schema_path = os.path.join(db_folder, "schema")
@@ -128,8 +128,10 @@ def setup_database(db_name):
             st.success("Đã xuất JSON thành công!")
         except Exception as e: 
             st.error(f"Lỗi xuất JSON: {e}")
+
     rag_system = VietnameseRAGSystem(st.session_state.embedding_model)
     chroma_client = chromadb.PersistentClient(path=os.path.join(db_folder, "db_chroma"))
+    
     if not os.path.exists(os.path.join(db_folder,"prompts", db_name + ".txt")):
         st.info("Đang Compress schema...")
         try:
@@ -458,6 +460,9 @@ for message in st.session_state.messages:
             # Tin nhắn của user
             st.markdown(message["content"])
 
+
+
+
 # ---- Ô nhập liệu chat ----
 prompt = st.chat_input("💬 Nhập câu hỏi của bạn ở đây...")
 
@@ -465,8 +470,8 @@ if prompt:
     # Thêm tin nhắn của user
     with st.chat_message("user"):
         st.markdown(prompt)
+
     is_relevant  = check_if_question_relevant(st.session_state.embedding_model,st.session_state.db_folder,st.session_state.db_path,st.session_state.db_des, prompt, db_name,top_k=5,distance_threshold=0.57)
-    
     
     
     if is_relevant:
@@ -476,11 +481,61 @@ if prompt:
         with st.chat_message("assistant"):
             with st.spinner("🤔 Scheama linking and Self refine..."):
                 st.subheader("📋 Log:")
-                log_placeholder = st.empty()  # Placeholder cho log real-time
+                # log_placeholder = st.empty()  # Placeholder cho log real-time
+                expander_placeholder = st.empty()
                 logs = []  # Lưu log tạm thời
                 id = int(time.time())
+                thinking_container = st.container()
+                if "expander_states" not in st.session_state:
+                     st.session_state.expander_states = {}
+
+                def update_thinking_log(msg, logs, id, container):
+                    """Update log trong thinking section"""
+                    
+                    timestamp = datetime.now().strftime('%H:%M:%S')
+                    
+                    # Thêm icon tương ứng với loại message
+                    if "thành công" in msg.lower() or "✅" in msg:
+                        icon = "✅"
+                    elif "lỗi" in msg.lower() or "❌" in msg:
+                        icon = "❌"
+                    elif "đang" in msg.lower():
+                        icon = "⏳"
+                    else:
+                        icon = "💭"
+                        
+                    formatted_msg = f"\n{icon} [{timestamp}] {msg}"
+                    logs.append(formatted_msg)
+                    
+
+                    # Cập nhật thinking section
+                    with container:
+                        with expander_placeholder.expander(f"{msg} ", expanded=True):
+                            # st.session_state.expander_states[expander_key] = True
+                            # Custom CSS cho log
+                            # st.markdown("""
+                            # <style>
+                            # .thinking-log {
+                            #     background-color: #0E1117   ;
+                            #     border-left: 4px solid #007acc;
+                            #     padding: 10px;
+                            #     border-radius: 5px;
+                            #     font-family: 'Verdana', monospace;
+                            #     font-size: 12px;
+                            #     max-height: 3000px;
+                            #     overflow-y: auto;
+                            # }
+                            # </style>
+                            # """, unsafe_allow_html=True)
+                            
+                            # # Hiển thị log với markdown
+                            # log_text = "<br>".join(logs)
+                            # st.markdown(f'<div class="thinking-log"><pre>{log_text}</pre></div>', 
+                            #         unsafe_allow_html=True)
+
+                            log_text = "\n".join(logs)
+                            st.markdown(log_text)
                 
-                # Xử lý câu hỏi
                 _ = process_question(
                     id,
                     st.session_state.db_folder,
@@ -489,7 +544,7 @@ if prompt:
                     st.session_state.current_db, 
                     st.session_state.db_des, 
                     client_sl,
-                    log_callback=lambda msg: update_log(msg,logs,id, log_placeholder)
+                    log_callback=lambda msg: update_thinking_log(msg, logs, id, thinking_container)
                 )
                 
                 success, final_result, final_sql, log_text = self_refine(
@@ -497,8 +552,27 @@ if prompt:
                     st.session_state.db_folder,
                     prompt,
                     st.session_state.agent,
-                    log_callback=lambda msg: update_log(msg, logs,id, log_placeholder)
-                )
+                    log_callback=lambda msg: update_thinking_log(msg, logs, id, thinking_container)
+                )            
+                # Xử lý câu hỏi
+                # _ = process_question(
+                #     id,
+                #     st.session_state.db_folder,
+                #     st.session_state.db_path,
+                #     prompt, 
+                #     st.session_state.current_db, 
+                #     st.session_state.db_des, 
+                #     client_sl,
+                #     log_callback=lambda msg: update_log(msg,logs,id, log_placeholder)
+                # )
+                
+                # success, final_result, final_sql, log_text = self_refine(
+                #     id,
+                #     st.session_state.db_folder,
+                #     prompt,
+                #     st.session_state.agent,
+                #     log_callback=lambda msg: update_log(msg, logs,id, log_placeholder)
+                # )
 
 
                 if success:
@@ -512,8 +586,8 @@ if prompt:
                     
                     # # Hiển thị log cuối cùng
                     
-                    update_log( "Đã xử lý thành công!", logs,id,log_placeholder)
-                    
+                    # update_log( "Đã xử lý thành công!", logs,id,log_placeholder)
+                    update_thinking_log(" Đã xử lý thành công!", logs, id, thinking_container)
                     # st.text_area(
                     #     "Processing Log", 
                     #     value="\n".join(logs), 

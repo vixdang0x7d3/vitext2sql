@@ -7,6 +7,7 @@ import os
 from underthesea import ner
 import time
 import logging
+import re
 # import py_vncorenlp
 
 import numpy as np
@@ -109,7 +110,14 @@ def retrieve_from_collections(embedding_model,db_folder,db_path,
         #     return []
 
         # Mã hóa câu hỏi
-        question = question.replace("_", " ")
+        def remove_punctuation(text):
+                text = text.lower()
+                # Xóa dấu phẩy, chấm, chấm phẩy, chấm than, hỏi
+                text = re.sub(r"[.,;!?]", " ", text)
+                
+                text = re.sub(r"\s+", " ", text).strip()
+                return text
+        question = remove_punctuation(question).replace("_", " ")
         question_ner = mask_entities(question)
         
         query_embedding_ex = embedding_model.encode([question_ner])
@@ -226,8 +234,15 @@ def check_if_question_relevant(embedding_model,
     log_callback=None
 ) -> bool:
     try:
+        def remove_punctuation(text):
+                    text = text.lower()
+                    text = text.replace("_", " ")
+                    text = re.sub(r"[.,;!?]", " ", text)
+                    text = re.sub(r"\n", ".", text).strip()
+                    text = re.sub(r"\s+", " ", text).strip()
+                    return text
         # Encode câu hỏi
-        query_embedding_db_schema = embedding_model.encode([question])
+        query_embedding_db_schema = embedding_model.encode([remove_punctuation(question)])
         # query_embedding_db_schema_both = embedding_model.encode(
         #     [question],
         #     batch_size=64,
