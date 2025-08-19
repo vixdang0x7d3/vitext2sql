@@ -74,7 +74,7 @@ class LSHChromaNormalizer:
     def normalize(self,  user_value: str, top_k: int = 5) -> Dict[str, Any]:
         user_value=normalize_text(user_value)
         # 1) encode & hash
-        q = np.array(self.encode([user_value])[0], dtype=np.float32)
+        q = np.array(self.model.encode([user_value])[0], dtype=np.float32)
         bits = simhash_bits(q, self.hp)
         sigs = band_signatures(bits)
 

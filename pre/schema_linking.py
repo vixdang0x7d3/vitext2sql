@@ -27,9 +27,9 @@ import time
 from .query_lsh import LSHChromaNormalizer
 
 def reduce_columns(sql: str, subset_columns: set[str]) -> str:
-    # Bắt đúng tên bảng
+    # Match tên bảng: hỗ trợ có hoặc không có backtick
     table_match = re.search(
-        r"create\s+(?:or\s+replace\s+)?table\s+`([^`]+)`", sql, re.IGNORECASE
+        r"create\s+(?:or\s+replace\s+)?table\s+`?([^\s`(]+)`?", sql, re.IGNORECASE
     )
     assert table_match, sql
     table_name = table_match.group(1)
@@ -49,8 +49,8 @@ def reduce_columns(sql: str, subset_columns: set[str]) -> str:
         if not line or line.upper().startswith("FOREIGN KEY"):
             continue
 
-        # Dùng regex để lấy tên cột trong backtick
-        col_match = re.match(r"`([^`]+)`", line)
+        # Match tên cột: hỗ trợ có hoặc không có backtick
+        col_match = re.match(r"`?([^\s`]+)`?", line)
         if not col_match:
             continue
         col_name = col_match.group(1)
@@ -63,7 +63,6 @@ def reduce_columns(sql: str, subset_columns: set[str]) -> str:
 
     new_sql = f"CREATE TABLE `{table_name}` (\n" + "\n".join(filtered_lines) + "\n);"
     return new_sql
-
 
 def reduce_ddl(db_folder,db_path,linked_json="", reduce_col=False, db_name="", id=1,log_callback=None,model=None):
     print("Doing schema linking")
@@ -220,105 +219,145 @@ def ask_model_sl(db_folder,db_path,task, id, db_name,chat_session,log_callback=N
     # assert len(tb_info_pth) == 1
     with open(os.path.join(output_path, db_name + ".txt"), encoding="utf-8") as f:
         tb_info = f.read()
-    if len(tb_info) > 20000:
-        # linked_dic = {}
-        print("Doing table-level schema linking")
-        log("Doing table-level schema linking")
-        # with ThreadPoolExecutor(max_workers=32) as executor:
-        #     futures = [
-        #         executor.submit(
-        #             process_example, task=task, tb_info=tb_info, db_name=db_name,log_callback=log_callback
-        #         )
-        #     ]
-        #     for future in tqdm(
-        #         as_completed(futures), total=len(futures), desc="Processing"
-        #     ):
-        #         result = future.result()
-            #     if ex_id is not None:
-            #         linked_dic[ex_id] = result
-        result = process_example(
-        task=task,
-        tb_info=tb_info,
+    
+    # linked_dic = {}
+    print("Doing table-level schema linking")
+    log("Doing table-level schema linking")
+    # with ThreadPoolExecutor(max_workers=32) as executor:
+    #     futures = [
+    #         executor.submit(
+    #             process_example, task=task, tb_info=tb_info, db_name=db_name,log_callback=log_callback
+    #         )
+    #     ]
+    #     for future in tqdm(
+    #         as_completed(futures), total=len(futures), desc="Processing"
+    #     ):
+    #         result = future.result()
+        #     if ex_id is not None:
+        #         linked_dic[ex_id] = result
+    result = process_example(
+    task=task,
+    tb_info=tb_info,
+    db_name=db_name,
+    log_callback=log_callback
+    )    
+    output_path = os.path.join(db_folder, "sl_response")
+    os.makedirs(output_path, exist_ok=True)
+    with open(
+        os.path.join(output_path, str(id) + ".txt"), "w", encoding="utf-8"
+    ) as f:
+        f.write(json.dumps(result, indent=4, ensure_ascii=False))
+    # log(json.dumps(result, indent=4, ensure_ascii=False))
+    reduce_ddl(db_folder,db_path,
+        linked_json=os.path.join(output_path, str(id) + ".txt"),
+        reduce_col=True,
         db_name=db_name,
-        log_callback=log_callback
-        )    
-        output_path = os.path.join(db_folder, "sl_response")
-        os.makedirs(output_path, exist_ok=True)
-        with open(
-            os.path.join(output_path, str(id) + ".txt"), "w", encoding="utf-8"
-        ) as f:
-            f.write(json.dumps(result, indent=4, ensure_ascii=False))
-        # log(json.dumps(result, indent=4, ensure_ascii=False))
-        reduce_ddl(db_folder,db_path,
-            linked_json=os.path.join(output_path, str(id) + ".txt"),
-            reduce_col=True,
-            db_name=db_name,
-            id=id,log_callback=log_callback,model=model
-        )
-    else:
-        output_path = os.path.join(db_folder, "final_context_prompts")
-        os.makedirs(output_path, exist_ok=True)
+        id=id,log_callback=log_callback,model=model
+    )
+    # else:
+    #     output_path = os.path.join(db_folder, "final_context_prompts")
+    #     os.makedirs(output_path, exist_ok=True)
 
-        with open(
-            os.path.join(output_path, str(id) + ".txt"), "w", encoding="utf-8"
-        ) as f:
-            external_knowledge = os.path.join(db_folder, "external_knowledge")
+    #     with open(
+    #         os.path.join(output_path, str(id) + ".txt"), "w", encoding="utf-8"
+    #     ) as f:
+    #         external_knowledge = os.path.join(db_folder, "external_knowledge")
 
-            output_sql_ex_file = os.path.join(external_knowledge, "sql_ex_context")
+    #         output_sql_ex_file = os.path.join(external_knowledge, "sql_ex_context")
 
-            output_db_des_file = os.path.join(external_knowledge, "db_des_context")
+    #         output_db_des_file = os.path.join(external_knowledge, "db_des_context")
 
-            with open(
-                os.path.join(output_sql_ex_file, str(id) + ".txt"), encoding="utf-8"
-            ) as a:
-                external_knowledge = a.read()
-            tb_info += (
-                f"External knowledge that might be helpful: \n{external_knowledge}\n"
-            )
-            if os.path.exists(os.path.join(output_db_des_file, str(id) + ".txt")):
-                with open(
-                    os.path.join(output_db_des_file, str(id) + ".txt"), encoding="utf-8"
-                ) as a:
-                    external_knowledge = a.read()
-                tb_info += f"\n{external_knowledge}\n"
-            f.writelines(tb_info)
-            log("Dưới 20k - không schema linking")
+    #         with open(
+    #             os.path.join(output_sql_ex_file, str(id) + ".txt"), encoding="utf-8"
+    #         ) as a:
+    #             external_knowledge = a.read()
+    #         tb_info += (
+    #             f"External knowledge that might be helpful: \n{external_knowledge}\n"
+    #         )
+    #         if os.path.exists(os.path.join(output_db_des_file, str(id) + ".txt")):
+    #             with open(
+    #                 os.path.join(output_db_des_file, str(id) + ".txt"), encoding="utf-8"
+    #             ) as a:
+    #                 external_knowledge = a.read()
+    #             tb_info += f"\n{external_knowledge}\n"
+    #         f.writelines(tb_info)
+    #         log("Dưới 20k - không schema linking")
 
 
 ask_prompt = """
-You are doing table level schema linking. Given tables with schema information and the task,
-you should think step by step and decide whether this table is related to the task.Some information may be in related tables not just in these tables.
-Use foreign key relationships if necessary to determine relevance.
-You should answer Y/N only. If the answer is Y, you should add columns that you think is related in python list format.You should response in vietnamese for "think" part 
+You are doing table level schema linking.
 
-Return each JSON object for each table inside a JSON code block, like this:
+INSTRUCTIONS:
+
+- Given at most 5 tables at a time with schema information and the task, you should think step by step and decide whether the tables are related to the task. Some information may be in related tables not just in these tables.
+- Use foreign key relationships if necessary to determine relevance.
+- You should answer Y/N only. If the answer is Y, you should add columns that you think is related in python list format.You should response in vietnamese for "think" part.
+- If a table has sign of being relevant i.e. it has columns or foreign keys that could answer the question, mark it as relevant, even if it can not fully answer the question. DON'T BE TOO STRICT. 
+
+Return a JSON object for EACH table inside a JSON code block, like this:
 
 ```json
 {{
-"think": "step by step",
-"answer": "Y or N",
-"columns": ["col1","col2"],
-"table name": "table_name"
+    "think": "step by step",
+    "answer": "Y or N",
+    "columns": ["col1","col2"],
+    "table name": "table_1"
 }}
 ```
+```json
+{{
+    "think": "step by step",
+    "answer": "Y or N",
+    "columns": ["col1","col2"],
+    "table name": "table_2"
+}}
+```
+...
+
+PLEASE COMPLY TO THIS FORMAT
 
 Table info: {0}
 Task: {1}
 
 {2}
 """
+
 ask_task_prompt = """
-You are extracting the exact words which could be a potential filter values from the user's question below that correspond to the tables and columns above.
-If it seem like dont have the filter value in question just leave it a blank list.
+You are extracting the value which could be a potential filter values from the user's question below.
 
-Return JSON object, inside a JSON code block, like this:
+INSTRUCTIONS:
+- Based on the keywords in the question and the sample values the tables and columns above.
+- If the question seems like it doesn't need a filter, just leave the list blank e.g. [].
+- If the question is a yes/no type question, return ["yes", "no", "có", "không", "rồi", "chưa", ...], you can look up the sample rows of the relevant tables for the value format, if you can't find it or can not decide if it a yes/no question, just leave the list blank.
+- If the question does not contain the filter value but you can infer it from the sample rows of the relevant tabled, feel free to use the value from the sample rows.
 
+Return JSON object inside a JSON code block, like this:
+
+{{
+"filter_values": ["val", "val2", "val3"]
+}}
+
+EXAMPLES:
+
+User's question: "Cho tôi tên tất cả nhân viên sống ở TP.HCM"
+
+Answer:
 ```json
 {{
-"filter_values": ["Việt Nam", "1990", "Hà Nội"]
+"filter_values": ["TP.HCM"]
 }}
 ```
 
+User's question: "Liệt kê tất cả đơn hàng đã thanh toán từ ngày 23/04/2025 đến ngày 23/05/2025"
+
+
+Answer:
+```json
+{{
+"filter_values": ["23/04/2025", "23/05/2025"]
+}}
+```
+Your turn to answer this question:
 User's question: {0}
 
 {1}
@@ -358,7 +397,7 @@ def ask_model_sl_(db_folder,db_path,tb_info, task, chat_session, db_name, id,log
         max_try = 2
         tb_text = "\n\n".join(chunk)
         input_prompt = ask_prompt.format(tb_text, task, db_des)
-        print("input promt:  "+input_prompt)
+        print("input promt: "+input_prompt)
         success = False
         while max_try:
             response = chat_session.get_model_response(input_prompt, "json")

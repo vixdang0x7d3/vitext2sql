@@ -10,6 +10,11 @@ import base64
 import chromadb
 from datetime import datetime
 from dotenv import load_dotenv
+import json
+import sqlite3
+
+import traceback
+
 # Thêm thư mục gốc vào path để import các module
 load_dotenv()
 root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -20,7 +25,8 @@ if root not in sys.path:
 # Import các module từ backend
 try:
     from database_manager import DatabaseManager
-    from llm_client import OpenAIClient, create_ollama_client,GPTChat,GPTChat_sl
+    from llm_client import  create_vllm_client,GPTChat_sl
+    from tokenizer import create_tokenizer
     from agent import Agent
     from pre.sqlite import extract_ddl_to_csv, export_all_tables_to_json
     from pre.setup_vector_chromadb import VietnameseRAGSystem
@@ -37,12 +43,14 @@ st.set_page_config(
     page_title="SQL Agent Chat",
     layout="wide"
 )
-
+HISTORY_FILE = "chat_history.json"
 # Khởi tạo session state
 if "current_db" not in st.session_state:
     st.session_state.current_db = None
 if "messages" not in st.session_state:
     st.session_state.messages = []
+if "new_messages" not in st.session_state:
+    st.session_state.new_messages = []
 if "agent" not in st.session_state:
     st.session_state.agent = None
 if "dbman" not in st.session_state:
@@ -78,8 +86,25 @@ def init_llm_client():
         #     max_context_length=200_000,
         #     system_prompt=system_prompt,
         # )
-        client =  GPTChat(system_prompt=system_prompt,temperature=1)
-        client_sl =  GPTChat_sl(system_prompt="",temperature=0)
+
+        
+        sql_tokenizer = create_tokenizer("openai_compat", "qwen3-instruct")
+
+
+        client = create_vllm_client(
+            base_url=  "https://vixdang0x7d3--qwen3-server-serve.modal.run",
+            model="llm", 
+            max_context_length=128_000,
+            tokenizer=sql_tokenizer,
+            system_prompt=system_prompt,
+        )
+        # client_sl =  GPTChat_sl(system_prompt="",temperature=0)
+        client_sl = GPTChat_sl(
+            base_url="https://vixdang0x7d3--qwen3-server-serve.modal.run/v1", 
+            model="llm",
+            system_prompt="", 
+            temperature=0,
+        )
         return client,client_sl
     except Exception as e:
         st.error(f"Lỗi khởi tạo LLM client: {e}")
@@ -235,7 +260,8 @@ def process_question(id,db_folder,db_path,question, db_name, db_des,client,log_c
             id=id,
             db_name=db_name,
             chat_session=client,
-            log_callback=log_callback
+            log_callback=log_callback,
+            model=st.session_state.embedding_model
         )
         
         # # Đọc final context prompt
@@ -257,6 +283,7 @@ def process_question(id,db_folder,db_path,question, db_name, db_des,client,log_c
         return   id  
     except Exception as e:
         st.error(f"Lỗi xử lý câu hỏi: {e}")
+        traceback.print_exc()  # in full stack trace ra console
         return None, None
 def self_refine(id,db_folder,question,agent,log_callback=None):
     # Đọc final context prompt
@@ -328,18 +355,56 @@ client,client_sl = init_llm_client()
 with st.sidebar:
     st.header(" Control Panel")
     # Upload database mới
-    uploaded_db = st.file_uploader("📤 Tải lên SQLite DB mới", type=["sqlite", "db"],key="file1")
-    if uploaded_db is not None:
-        new_db_name = st.text_input("Tên thư mục lưu DB:", value=uploaded_db.name.split(".")[0])
+    # uploaded_db = st.file_uploader("📤 Tải lên SQLite DB mới", type=["sqlite", "db"],key="file1")
+    # if uploaded_db is not None:
+    #     new_db_name = st.text_input("Tên thư mục lưu DB:", value=uploaded_db.name.split(".")[0])
+    #     if st.button("➕ Thêm DB"):
+    #         new_db_folder = os.path.join("pre/db", new_db_name)
+    #         os.makedirs(new_db_folder, exist_ok=True)
+    #         db_path = os.path.join(new_db_folder, f"{new_db_name}.sqlite")
+            
+    #         with open(db_path, "wb") as f:
+    #             f.write(uploaded_db.read())
+            
+    #         st.success(f"Đã thêm DB mới: {new_db_name}")
+    #         st.rerun()  # Load lại trang để hiện DB mới
+    uploaded_file = st.file_uploader(
+        "📤 Tải lên SQLite DB hoặc SQL mới",
+        type=["sqlite", "db", "sql"],
+        key="file1"
+    )
+    
+    if uploaded_file is not None:
+        # Tên DB gốc (không có phần đuôi)
+        base_name = uploaded_file.name.split(".")[0]
+        
+        # Thêm timestamp để tạo tên folder duy nhất
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        new_db_name = st.text_input("Tên thư mục lưu DB:", value=f"{base_name}_{timestamp}")
+        
         if st.button("➕ Thêm DB"):
             new_db_folder = os.path.join("pre/db", new_db_name)
             os.makedirs(new_db_folder, exist_ok=True)
-            db_path = os.path.join(new_db_folder, f"{new_db_name}.sqlite")
             
-            with open(db_path, "wb") as f:
-                f.write(uploaded_db.read())
+            # Đường dẫn file DB
+            db_path = os.path.join(new_db_folder, f"{base_name}.sqlite")
             
-            st.success(f"Đã thêm DB mới: {new_db_name}")
+            # Nếu là file SQLite hoặc DB thì ghi trực tiếp
+            if uploaded_file.name.endswith((".sqlite", ".db")):
+                with open(db_path, "wb") as f:
+                    f.write(uploaded_file.read())
+                st.success(f"Đã thêm DB SQLite mới: {new_db_name}")
+            
+            # Nếu là file SQL thì tạo DB từ SQL script
+            elif uploaded_file.name.endswith(".sql"):
+                sql_content = uploaded_file.read().decode("utf-8")  # đọc nội dung SQL
+                connection = sqlite3.connect(db_path)
+                cursor = connection.cursor()
+                cursor.executescript(sql_content)  # chạy toàn bộ script
+                connection.commit()
+                connection.close()
+                st.success(f"Đã tạo DB mới từ file SQL: {new_db_name}")
+            
             st.rerun()  # Load lại trang để hiện DB mới
 
     available_dbs = get_available_databases()
@@ -354,7 +419,30 @@ with st.sidebar:
         st.session_state.current_db = db_name
         st.session_state.agent = None
         st.session_state.dbman = None
-        
+
+        #  Append chat mới vào lịch sử
+        new_chats = st.session_state.new_messages or []
+        if new_chats:
+           
+            history_chat_folder = os.path.join(st.session_state.db_folder,"history_chat")
+            os.makedirs(history_chat_folder, exist_ok=True)
+            history_chat_file = os.path.join(history_chat_folder,HISTORY_FILE)
+
+            if os.path.exists(history_chat_file):
+                try:
+                    with open(history_chat_file, "r", encoding="utf-8") as f:
+                        chat_history = json.load(f)
+                except:
+                    chat_history = []
+            else:
+                chat_history = []
+
+            chat_history.extend(new_chats)
+
+            # Lưu lại vào file
+            with open(history_chat_file, "w", encoding="utf-8") as f:
+                json.dump(chat_history, f, ensure_ascii=False, indent=2)
+
         with st.spinner("Đang setup database..."):
             db_folder, db_path, db_des = setup_database(db_name)
             
@@ -393,6 +481,20 @@ with st.sidebar:
     # Khởi tạo LLM client và agent
     if st.button(" Khởi tạo Agent"):
         with st.spinner("Đang khởi tạo LLM client và agent..."):
+            history_chat_folder = os.path.join(st.session_state.db_folder,"history_chat")
+            os.makedirs(history_chat_folder, exist_ok=True)
+            history_chat_file = os.path.join(history_chat_folder,HISTORY_FILE)
+
+            if os.path.exists(history_chat_file):
+                try:
+                    with open(history_chat_file, "r", encoding="utf-8") as f:
+                        chat_history = json.load(f)
+                except:
+                    chat_history = []
+            else:
+                chat_history = []
+
+            st.session_state.messages = chat_history
             # client = init_llm_client()
             print(st.session_state.db_path)
             if client:
@@ -435,14 +537,11 @@ for message in st.session_state.messages:
         if isinstance(message["content"], dict):
             # Hiển thị phản hồi của assistant
             st.subheader("📋 Log:")
-            st.text_area(
-                "Processing Log", 
-                value=message["content"]["log_body"], 
-                height=150, 
-                key=f"log_{message['content']['id']}",
-                disabled=True
-            )
-            
+            # Dùng expander thay cho text_area
+            with st.expander("Processing Log", expanded=False):
+                log_text = message["content"]["log_body"]
+                st.markdown(log_text)
+
             st.subheader("🔍 Final SQL:")
             st.code(message["content"]["sql_body"], language="sql")
             
@@ -476,6 +575,7 @@ if prompt:
     
     if is_relevant:
         st.session_state.messages.append({"role": "user", "content": prompt})
+        st.session_state.new_messages.append({"role": "user", "content": prompt})
 
         # Xử lý và trả lời
         with st.chat_message("assistant"):
@@ -511,28 +611,7 @@ if prompt:
                     # Cập nhật thinking section
                     with container:
                         with expander_placeholder.expander(f"{msg} ", expanded=True):
-                            # st.session_state.expander_states[expander_key] = True
-                            # Custom CSS cho log
-                            # st.markdown("""
-                            # <style>
-                            # .thinking-log {
-                            #     background-color: #0E1117   ;
-                            #     border-left: 4px solid #007acc;
-                            #     padding: 10px;
-                            #     border-radius: 5px;
-                            #     font-family: 'Verdana', monospace;
-                            #     font-size: 12px;
-                            #     max-height: 3000px;
-                            #     overflow-y: auto;
-                            # }
-                            # </style>
-                            # """, unsafe_allow_html=True)
-                            
-                            # # Hiển thị log với markdown
-                            # log_text = "<br>".join(logs)
-                            # st.markdown(f'<div class="thinking-log"><pre>{log_text}</pre></div>', 
-                            #         unsafe_allow_html=True)
-
+                         
                             log_text = "\n".join(logs)
                             st.markdown(log_text)
                 
@@ -622,6 +701,10 @@ if prompt:
 
                     # Lưu vào lịch sử
                     st.session_state.messages.append({
+                        "role": "assistant", 
+                        "content": assistant_response
+                    })
+                    st.session_state.new_messages.append({
                         "role": "assistant", 
                         "content": assistant_response
                     })

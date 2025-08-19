@@ -437,11 +437,102 @@ class OpenAIClient(LLMClient):
             return False
 
 
+# class GPTChat_sl:
+#     def __init__(self, azure=False, model="openai/gpt-4.1", temperature=1,system_prompt: str | None = None) -> None:
+#         load_dotenv()
+#         self.client = OpenAI(
+#             base_url="https://models.github.ai/inference",
+#             api_key=os.environ.get("OPENAI_API_KEY"),
+#         )
+#         self.messages = []
+#         self.model = model
+#         self.temperature = float(temperature)
+
+#         # if system_prompt:
+#         #     self.system_prompt=system_prompt
+
+    
+#     def get_response(self, prompt) -> str:
+#         self.messages.append({"role": "user", "content": prompt})
+#         if self.model in ["o3-pro"]:
+#             response = self.client.responses.create(
+#                 model=self.model,
+#                 input=self.messages,
+#                 temperature=self.temperature
+#             )
+#             main_content = response.output_text
+#         else:
+#             response = self.client.chat.completions.create(
+#                 model=self.model,
+#                 messages=self.messages,
+#                 temperature=self.temperature
+#             )
+#             main_content = response.choices[0].message.content
+#         self.messages.append({"role": "assistant", "content": main_content})
+#          # Xóa nội dung user vừa gửi (set về rỗng)
+#         for msg in reversed(self.messages):
+#             if msg["role"] == "user" and msg["content"] == prompt:
+#                 msg["content"] = ""
+#                 break
+#         return main_content
+
+#     def get_model_response(self, prompt, code_format=None) -> list:
+#         code_blocks = []
+#         max_try = 3
+#         while code_blocks == [] and max_try > 0:
+#             max_try -= 1
+#             try:
+#                 response = self.get_response(prompt)
+#             except Exception as e:
+#                 print(f"max_try: {max_try}, exception: {e}")
+#                 continue
+#             print("response: "+ response)
+#             code_blocks = extract_all_blocks(response, code_format)
+#         if max_try == 0 or code_blocks == []:
+#             print(f"get_model_response() exit, max_try: {max_try}, code_blocks: {code_blocks}")
+#             sys.exit(0)
+            
+#         return code_blocks
+
+#     def get_model_response_txt(self, prompt):
+#         max_try = 3
+#         while max_try > 0:
+#             max_try -= 1
+#             try:
+#                 response = self.get_response(prompt)
+#             except Exception as e:
+#                 print(f"max_try: {max_try}, exception: {e}")
+#                 continue
+#             break
+#         if max_try == 0:
+#             print(f"get_model_response_txt() exit, max_try: {max_try}")
+#             sys.exit(0)
+        
+#         return response
+
+#     def get_message_len(self):
+#         return {
+#             "prompt_len": sum(len(item["content"]) for item in self.messages if item["role"] == "user"),
+#             "response_len": sum(len(item["content"]) for item in self.messages if item["role"] == "assistant"),
+#             "num_calls": len(self.messages) // 2
+#         }
+    
+#     def init_messages(self):
+#         self.messages = []
+#         # if self.system_prompt:
+#         #     self.messages.append({"role": "system", "content": self.system_prompt})
+
 class GPTChat_sl:
-    def __init__(self, azure=False, model="openai/gpt-4.1", temperature=1,system_prompt: str | None = None) -> None:
+    def __init__(
+        self,
+        base_url="https://models.github.ai/inference",
+        model="openai/gpt-4.1",
+        temperature=1,
+        system_prompt: str | None = None,
+    ) -> None:
         load_dotenv()
         self.client = OpenAI(
-            base_url="https://models.github.ai/inference",
+            base_url=base_url,
             api_key=os.environ.get("OPENAI_API_KEY"),
         )
         self.messages = []
@@ -450,24 +541,23 @@ class GPTChat_sl:
 
         # if system_prompt:
         #     self.system_prompt=system_prompt
+
     def get_response(self, prompt) -> str:
         self.messages.append({"role": "user", "content": prompt})
+
         if self.model in ["o3-pro"]:
             response = self.client.responses.create(
-                model=self.model,
-                input=self.messages,
-                temperature=self.temperature
+                model=self.model, input=self.messages, temperature=self.temperature
             )
             main_content = response.output_text
         else:
             response = self.client.chat.completions.create(
-                model=self.model,
-                messages=self.messages,
-                temperature=self.temperature
+                model=self.model, messages=self.messages, temperature=self.temperature
             )
             main_content = response.choices[0].message.content
+
         self.messages.append({"role": "assistant", "content": main_content})
-         # Xóa nội dung user vừa gửi (set về rỗng)
+
         for msg in reversed(self.messages):
             if msg["role"] == "user" and msg["content"] == prompt:
                 msg["content"] = ""
@@ -484,12 +574,14 @@ class GPTChat_sl:
             except Exception as e:
                 print(f"max_try: {max_try}, exception: {e}")
                 continue
-            print("response: "+ response)
+            print("response: " + response)
             code_blocks = extract_all_blocks(response, code_format)
         if max_try == 0 or code_blocks == []:
-            print(f"get_model_response() exit, max_try: {max_try}, code_blocks: {code_blocks}")
+            print(
+                f"get_model_response() exit, max_try: {max_try}, code_blocks: {code_blocks}"
+            )
             sys.exit(0)
-            
+
         return code_blocks
 
     def get_model_response_txt(self, prompt):
@@ -505,20 +597,28 @@ class GPTChat_sl:
         if max_try == 0:
             print(f"get_model_response_txt() exit, max_try: {max_try}")
             sys.exit(0)
-        
+
         return response
 
     def get_message_len(self):
         return {
-            "prompt_len": sum(len(item["content"]) for item in self.messages if item["role"] == "user"),
-            "response_len": sum(len(item["content"]) for item in self.messages if item["role"] == "assistant"),
-            "num_calls": len(self.messages) // 2
+            "prompt_len": sum(
+                len(item["content"]) for item in self.messages if item["role"] == "user"
+            ),
+            "response_len": sum(
+                len(item["content"])
+                for item in self.messages
+                if item["role"] == "assistant"
+            ),
+            "num_calls": len(self.messages) // 2,
         }
-    
+
     def init_messages(self):
         self.messages = []
         # if self.system_prompt:
         #     self.messages.append({"role": "system", "content": self.system_prompt})
+
+
 class GPTChat:
     def __init__(self, azure=False, model="openai/gpt-4.1", temperature=1,system_prompt: str | None = None) -> None:
         load_dotenv()
