@@ -292,7 +292,7 @@ INSTRUCTIONS:
 - Given at most 5 tables at a time with schema information and the task, you should think step by step and decide whether the tables are related to the task. Some information may be in related tables not just in these tables.
 - Use foreign key relationships if necessary to determine relevance.
 - You should answer Y/N only. If the answer is Y, you should add columns that you think is related in python list format.You should response in vietnamese for "think" part.
-- If a table has a foreign key to other relevant table, it might be useful.
+- If a table seem revelant to you, but no schema information, pick it.
 
 - PLEASE COMPLY TO THE JSON FORMAT SPECIFIED.
 - THERE MIGHT BE MORE THAN JUST THESE TABLES, BE WISE IN YOUR CHOICE.
@@ -307,6 +307,26 @@ Return a JSON object for EACH table inside a JSON code block, like this:
     "table name": "table_1"
 }}
 ```
+
+```json
+{{
+    "think": "step by step",
+    "answer": "Y or N",
+    "columns": ["col1","col2"],
+    "table name": "table_2"
+}}
+```
+
+```json
+{{
+    "think": "step by step",
+    "answer": "Y or N",
+    "columns": ["col1","col2"],
+    "table name": "table_ \3"
+}}
+```
+
+more...
 
 Table info: {0}
 Task: {1}
