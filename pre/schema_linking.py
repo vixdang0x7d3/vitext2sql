@@ -285,49 +285,6 @@ def ask_model_sl(db_folder,db_path,task, id, db_name,chat_session,log_callback=N
 
 
 ask_prompt = """
-You are a SQL schema-linking assistant.
-    INSTRUCTIONS:
-        - Input: You will be given only a subset of all available tables (e.g., 5 out of 10). Each table has schema information, and you are also given the natural-language task.
-        - Output: For each provided table, decide whether it is needed to generate SQL for the task
- 
-    REQUIREMENTS:
-        1. Do schema linking only with the given tables in the current request, but also consider that other related tables may exist outside this subset ,if you detect that a JOIN or foreign key reference points to a missing table, assume that missing table exists and take that table as related to the task .When uncertain, follow the principle "dư còn hơn thiếu" (prefer including possible relevant tables), but avoid unnecessary joins — prefer correctness and minimality.
-        2. Always include all four fields in your JSON object for each table:
-            - "think": your reasoning in Vietnamese
-            - "answer": "Y" or "N"
-            - "columns": list of relevant columns (empty list if none)
-            - "table name": the table's name
-    
-        3. If the answer is "Y", list the columns you think are relevant in a Python list format.
-        4. Return a list of ** separate JSON object for each table** inside a single JSON code block. Do not merge multiple tables into one object.
-        5. Do not include tables coming from the assistant role again in the output.
-
-    Format example:
-
-   ```json
-    [
-    {{
-        "think": "Bảng Customer chứa thông tin khách hàng, có thể liên quan tới task phân tích hành vi người dùng.",
-        "answer": "Y",
-        "columns": ["CustomerID", "Name", "Address"],
-        "table name": "Customer"
-    }},
-    {{
-        "think": "Bảng Order chứa thông tin đơn hàng, liên quan đến phân tích doanh số.",
-        "answer": "Y",
-        "columns": ["OrderID", "CustomerID", "OrderDate", "TotalAmount"],
-        "table name": "Order"
-    }},
-    {{
-        "think": "Bảng Product có thông tin sản phẩm, nhưng task không cần dữ liệu sản phẩm chi tiết.",
-        "answer": "N",
-        "columns": [],
-        "table name": "Product"
-    }}
-    ]
-```
-
-
     Table info: {0}
 
     Task: {1}

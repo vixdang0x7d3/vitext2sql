@@ -77,7 +77,7 @@ def init_llm_client():
 
     Take a deep breath and think step by step to find the correct SQL query.
     """
-    system_prompt_sl = """
+    system_prompt_sl = """\\no_think 
     You are a SQL schema-linking assistant.
     INSTRUCTIONS:
         - Input: You will be given only a subset of all available tables (e.g., 5 out of 10). Each table has schema information, and you are also given the natural-language task.
