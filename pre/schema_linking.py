@@ -284,55 +284,13 @@ def ask_model_sl(db_folder,db_path,task, id, db_name,chat_session,log_callback=N
     #         log("Dưới 20k - không schema linking")
 
 
-ask_prompt = """
-You are doing table level schema linking.
+ask_prompt = """"
+    Table info: {0}
 
-INSTRUCTIONS:
+    Task: {1}
 
-- Given at most 5 tables at a time with schema information and the task, you should think step by step and decide whether the tables are related to the task. Some information may be in related tables not just in these tables.
-- Use foreign key relationships if necessary to determine relevance.
-- You should answer Y/N only. If the answer is Y, you should add columns that you think is related in python list format.You should response in vietnamese for "think" part.
-- If a table seem revelant to you, but no schema information, pick it.
-
-- PLEASE COMPLY TO THE JSON FORMAT SPECIFIED.
-- THERE MIGHT BE MORE THAN JUST THESE TABLES, BE WISE IN YOUR CHOICE.
-
-Return a JSON object for EACH table inside a JSON code block, like this:
-
-```json
-{{
-    "think": "step by step",
-    "answer": "Y or N",
-    "columns": ["col1","col2"],
-    "table name": "table_1"
-}}
-```
-
-```json
-{{
-    "think": "step by step",
-    "answer": "Y or N",
-    "columns": ["col1","col2"],
-    "table name": "table_2"
-}}
-```
-
-```json
-{{
-    "think": "step by step",
-    "answer": "Y or N",
-    "columns": ["col1","col2"],
-    "table name": "table_ \3"
-}}
-```
-
-more...
-
-Table info: {0}
-Task: {1}
-
-{2}
-"""
+    {2}
+    """
 
 ask_task_prompt = """
 You are extracting the value which could be a potential filter values from the user's question below.
@@ -415,30 +373,35 @@ def ask_model_sl_(db_folder,db_path,tb_info, task, chat_session, db_name, id,log
             response = chat_session.get_model_response(input_prompt, "json")
             # time.sleep(0.5)
             print(response)  # debug
-            if len(response) == 1:
-                print("len la 1")
+            # if len(response) == 1:
+            #     print("len la 1")
+            tables= []
             try:
-                # response là list JSON string -> parse từng cái
-                for item, tb in zip(response, chunk):
-                    data = json.loads(item)
-                    
-                    assert data["answer"] in ["Y", "N"], (
-                        'data["answer"] should be in ["Y", "N"]'
+                if len(response) == 1:
+                    json_array_str = response[0]  # lấy string JSON array
+                    tables = json.loads(json_array_str)  # chuyển thành list of dict
+                else:
+                    for tb in response:
+                        tables.append(json.load(tb))
+                for table in tables:
+   
+                    assert table["answer"] in ["Y", "N"], (
+                        'table["answer"] should be in ["Y", "N"]'
                     )
                     readable_log = (
-                        f"Bảng: {data.get('table name', tb)} \n"
-                        f"- Trả lời: {'Có liên quan tới câu hỏi' if data['answer'] == 'Y' else 'Không liên quan'}"
+                        f"Bảng: {table.get('table name', "")} \n"
+                        f"- Trả lời: {'Có liên quan tới câu hỏi' if table['answer'] == 'Y' else 'Không liên quan'}"
                         f"{(
-                            f'\n- Cột liên quan: {', '.join(data.get('columns', []))}\n- Giải thích: {data.get('think', 'Không có giải thích')}'
-                            if data['answer'] == 'Y'
-                            else f'\n- Giải thích: {data.get("think", "Không có giải thích")}'
+                            f'\n- Cột liên quan: {', '.join(table.get('columns', []))}\n- Giải thích: {table.get('think', 'Không có giải thích')}'
+                            if table['answer'] == 'Y'
+                            else f'\n- Giải thích: {table.get("think", "Không có giải thích")}'
                         )}"
                     )
                     # readable_log = "a"
                     log(readable_log)
                     # table_name = re.search(r'^Table full name:\s*(.+)$', tb, re.MULTILINE).group(1)
                     # data["table name"] = table_name
-                    linked.append(data)
+                    linked.append(table)
                 success = True
                 break  # thoát vòng while nếu thành công
             except Exception as e:

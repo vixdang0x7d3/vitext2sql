@@ -62,7 +62,7 @@ if  "embedding_model" not in st.session_state:
 @st.cache_resource
 def init_llm_client():
     """Khởi tạo LLM client"""
-    system_prompt = """You are a data science expert that can write excellent SQL queries. Below, you are provided with a database schema, a natural question, and some necessary context. Your task is to understand the schema, the context, and generate a valid SQL query to answer the question.
+    system_prompt = """\\no_think You are a data science expert that can write excellent SQL queries. Below, you are provided with a database schema, a natural question, and some necessary context. Your task is to understand the schema, the context, and generate a valid SQL query to answer the question.
 
     Instructions:
     - Make sure you only output the information that is asked in the question. If the question asks for a specific column, make sure to only include that column in the SELECT clause, nothing more.
@@ -77,7 +77,49 @@ def init_llm_client():
 
     Take a deep breath and think step by step to find the correct SQL query.
     """
+    system_prompt_sl = """
+    You are a SQL schema-linking assistant.
+    INSTRUCTIONS:
+        - Input: You will be given only a subset of all available tables (e.g., 5 out of 10). Each table has schema information, and you are also given the natural-language task.
+        - Output: For each provided table, decide whether it is needed to generate SQL for the task
+ 
+    REQUIREMENTS:
+        1. Do schema linking only with the given tables in the current request, but also consider that other related tables may exist outside this subset ,if you detect that a JOIN or foreign key reference points to a missing table, assume that missing table exists and take that table as related to the task .When uncertain, follow the principle "dư còn hơn thiếu" (prefer including possible relevant tables), but avoid unnecessary joins — prefer correctness and minimality.
+        2. Always include all four fields in your JSON object for each table:
+            - "think": your reasoning in Vietnamese
+            - "answer": "Y" or "N"
+            - "columns": list of relevant columns (empty list if none)
+            - "table name": the table's name
     
+        3. If the answer is "Y", list the columns you think are relevant in a Python list format.
+        4. Return a list of ** separate JSON object for each table** inside a single JSON code block. Do not merge multiple tables into one object.
+        5. Do not include tables coming from the assistant role again in the output.
+
+    Format example:
+
+   ```json
+    [
+    {{
+        "think": "Bảng Customer chứa thông tin khách hàng, có thể liên quan tới task phân tích hành vi người dùng.",
+        "answer": "Y",
+        "columns": ["CustomerID", "Name", "Address"],
+        "table name": "Customer"
+    }},
+    {{
+        "think": "Bảng Order chứa thông tin đơn hàng, liên quan đến phân tích doanh số.",
+        "answer": "Y",
+        "columns": ["OrderID", "CustomerID", "OrderDate", "TotalAmount"],
+        "table name": "Order"
+    }},
+    {{
+        "think": "Bảng Product có thông tin sản phẩm, nhưng task không cần dữ liệu sản phẩm chi tiết.",
+        "answer": "N",
+        "columns": [],
+        "table name": "Product"
+    }}
+    ]
+```
+"""
     try:
         # Sử dụng OpenAI client (có thể thay đổi thành Ollama nếu cần)
         # client = OpenAIClient(
@@ -88,22 +130,39 @@ def init_llm_client():
         # )
 
         
+        
+
+
+        # client = create_vllm_client(
+        #     base_url=  "https://vixdang0x7d3--qwen3-server-serve.modal.run",
+        #     model="llm", 
+        #     max_context_length=128_000,
+        #     tokenizer=sql_tokenizer,
+        #     system_prompt=system_prompt,
+        # )
+        # # client_sl =  GPTChat_sl(system_prompt="",temperature=0)
+        # client_sl = GPTChat_sl(
+        #     base_url="https://vixdang0x7d3--qwen3-server-serve.modal.run/v1", 
+        #     model="llm",
+        #     temperature=0.5,
+        #     system_prompt=""
+        # )
+
         sql_tokenizer = create_tokenizer("openai_compat", "qwen3-instruct")
 
-
         client = create_vllm_client(
-            base_url=  "https://vixdang0x7d3--qwen3-server-serve.modal.run",
-            model="llm", 
+            base_url=  "https://n21dccn176--qwen3-server-serve.modal.run",
+            model="qwen3-8b", 
             max_context_length=128_000,
             tokenizer=sql_tokenizer,
             system_prompt=system_prompt,
         )
-        # client_sl =  GPTChat_sl(system_prompt="",temperature=0)
+      
         client_sl = GPTChat_sl(
-            base_url="https://vixdang0x7d3--qwen3-server-serve.modal.run/v1", 
-            model="llm",
-            system_prompt="", 
-            temperature=0,
+            base_url="https://n21dccn176--qwen3-server-serve.modal.run/v1", 
+            model="qwen3-8b",
+            temperature=0.1,
+            system_prompt=system_prompt_sl
         )
         return client,client_sl
     except Exception as e:
@@ -422,6 +481,7 @@ with st.sidebar:
 
         #  Append chat mới vào lịch sử
         new_chats = st.session_state.new_messages or []
+        st.session_state.new_messages=[]
         if new_chats:
            
             history_chat_folder = os.path.join(st.session_state.db_folder,"history_chat")
@@ -544,17 +604,17 @@ for message in st.session_state.messages:
 
             st.subheader("🔍 Final SQL:")
             st.code(message["content"]["sql_body"], language="sql")
-            
+            results_data = message["content"]["results_data"]
+
+            # Nếu là list[dict] thì convert lại thành DataFrame
+            if isinstance(results_data, list) and all(isinstance(row, dict) for row in results_data):
+                results_data = pd.DataFrame(results_data)
             st.markdown("---")
             st.subheader(" Query Results:")
-            if message["content"]["results_data"] is not None:
-                st.dataframe(
-                    message["content"]["results_data"], 
-                    use_container_width=True, 
-                    hide_index=True
-                )
+            if isinstance(results_data, pd.DataFrame):
+                st.dataframe(results_data, use_container_width=True, hide_index=True)
             else:
-                st.info("Không có dữ liệu để hiển thị")
+                st.write(results_data)
         else:
             # Tin nhắn của user
             st.markdown(message["content"])
@@ -693,11 +753,13 @@ if prompt:
                                 use_container_width=True, 
                                 hide_index=True
                             )
+                            assistant_response["results_data"] = results_data.to_dict(orient="records")
                         else:
                             st.write(results_data)
+                            assistant_response["results_data"] = results_data
                     else:
                         st.info("Không có dữ liệu để hiển thị")
-                    assistant_response["results_data"] = results_data
+                        assistant_response["results_data"] = None
 
                     # Lưu vào lịch sử
                     st.session_state.messages.append({
