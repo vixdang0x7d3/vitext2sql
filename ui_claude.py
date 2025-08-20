@@ -131,39 +131,39 @@ def init_llm_client():
 
         
         
-
-
-        # client = create_vllm_client(
-        #     base_url=  "https://vixdang0x7d3--qwen3-server-serve.modal.run",
-        #     model="llm", 
-        #     max_context_length=128_000,
-        #     tokenizer=sql_tokenizer,
-        #     system_prompt=system_prompt,
-        # )
-        # # client_sl =  GPTChat_sl(system_prompt="",temperature=0)
-        # client_sl = GPTChat_sl(
-        #     base_url="https://vixdang0x7d3--qwen3-server-serve.modal.run/v1", 
-        #     model="llm",
-        #     temperature=0.5,
-        #     system_prompt=""
-        # )
-
         sql_tokenizer = create_tokenizer("openai_compat", "qwen3-instruct")
 
         client = create_vllm_client(
-            base_url=  "https://n21dccn176--qwen3-server-serve.modal.run",
-            model="qwen3-8b", 
+            base_url=  "https://vixdang0x7d3--qwen3-server-serve.modal.run",
+            model="llm", 
             max_context_length=128_000,
             tokenizer=sql_tokenizer,
             system_prompt=system_prompt,
         )
-      
+        # client_sl =  GPTChat_sl(system_prompt="",temperature=0)
         client_sl = GPTChat_sl(
-            base_url="https://n21dccn176--qwen3-server-serve.modal.run/v1", 
-            model="qwen3-8b",
+            base_url="https://vixdang0x7d3--qwen3-server-serve.modal.run/v1", 
+            model="llm",
             temperature=0.1,
             system_prompt=system_prompt_sl
         )
+
+        
+
+        # client = create_vllm_client(
+        #     base_url=  "https://n21dccn176--qwen3-server-serve.modal.run",
+        #     model="qwen3-8b", 
+        #     max_context_length=128_000,
+        #     tokenizer=sql_tokenizer,
+        #     system_prompt=system_prompt,
+        # )
+      
+        # client_sl = GPTChat_sl(
+        #     base_url="https://n21dccn176--qwen3-server-serve.modal.run/v1", 
+        #     model="qwen3-8b",
+        #     temperature=0.1,
+        #     system_prompt=system_prompt_sl
+        # )
         return client,client_sl
     except Exception as e:
         st.error(f"Lỗi khởi tạo LLM client: {e}")
@@ -398,6 +398,8 @@ def decode_dataframe(result):
     if isinstance(result, dict) and "df_csv_data" in result:
         compressed_bytes = base64.b64decode(result["df_csv_data"])
         csv_data = gzip.decompress(compressed_bytes).decode("utf-8")
+        if csv_data.strip() == "":
+            return pd.DataFrame()
         return pd.read_csv(io.StringIO(csv_data))
     return result
 

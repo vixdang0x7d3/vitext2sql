@@ -298,31 +298,75 @@ def digit_entropy_ratio(s: str) -> float:
     digit_count = sum(c.isdigit() for c in s)
     return 1.0 - digit_count / len(s)
 
+# def extract_column_names(sql: str) -> list[str]:
+#     column_names = []
+#     sql = re.search(
+#         r'\((.*?)\)\s*(PARTITION|CLUSTER|OPTIONS|;|$)',
+#         sql,
+#         re.DOTALL | re.IGNORECASE
+#     )
+#     if not sql:
+#         raise ValueError("Cannot extract columns block.")
+#     sql = sql.group(1)
+#     for line in sql.splitlines():
+#         line = line.strip()
+#         if not line or line.upper().startswith("CREATE") or line.startswith(")") or line.startswith("PARTITION"):
+#             continue
+#         # parts = line.split()
+#         col_match = re.match(r'`([^`]+)`', line)
+#         if not col_match:
+#             continue
+#         col_name = col_match.group(1)
+#         column_name = col_name.strip('`",')
+#         column_names.append(column_name)
+        
+#         # if len(parts) >= 2:
+#         #     column_name = parts[0].strip('`",')
+#         #     column_names.append(column_name)
+#     return column_names
 def extract_column_names(sql: str) -> list[str]:
     column_names = []
-    sql = re.search(
+    sql_match = re.search(
         r'\((.*?)\)\s*(PARTITION|CLUSTER|OPTIONS|;|$)',
         sql,
         re.DOTALL | re.IGNORECASE
     )
-    if not sql:
+    if not sql_match:
         raise ValueError("Cannot extract columns block.")
-    sql = sql.group(1)
-    for line in sql.splitlines():
+    
+    columns_block = sql_match.group(1)
+    
+    for line in columns_block.splitlines():
         line = line.strip()
-        if not line or line.upper().startswith("CREATE") or line.startswith(")") or line.startswith("PARTITION"):
-            continue
-        # parts = line.split()
-        col_match = re.match(r'`([^`]+)`', line)
-        if not col_match:
-            continue
-        col_name = col_match.group(1)
-        column_name = col_name.strip('`",')
-        column_names.append(column_name)
         
-        # if len(parts) >= 2:
-        #     column_name = parts[0].strip('`",')
-        #     column_names.append(column_name)
+        # Bỏ qua các dòng rỗng hoặc không phải định nghĩa cột
+        if (not line or 
+            line.upper().startswith("CREATE") or 
+            line.startswith(")") or 
+            line.startswith("PARTITION") or
+            line.upper().startswith("PRIMARY") or
+            line.upper().startswith("FOREIGN") or
+            line.upper().startswith("UNIQUE") or
+            line.upper().startswith("INDEX")):
+            continue
+        
+        # Xử lý cả tên cột có backtick và không có backtick
+        # Pattern 1: Tên cột có backtick `column_name`
+        col_match_with_backtick = re.match(r'`([^`]+)`', line)
+        if col_match_with_backtick:
+            col_name = col_match_with_backtick.group(1)
+            column_names.append(col_name)
+            continue
+        
+        # Pattern 2: Tên cột không có backtick
+        # Lấy từ đầu tiên trước khoảng trắng (tên cột)
+        col_match_without_backtick = re.match(r'([a-zA-Z_][a-zA-Z0-9_]*)', line)
+        if col_match_without_backtick:
+            col_name = col_match_without_backtick.group(1)
+            # Kiểm tra không phải là keyword SQL
+            if col_name.upper() not in ['PRIMARY', 'FOREIGN', 'UNIQUE', 'INDEX', 'KEY', 'CONSTRAINT']:
+                column_names.append(col_name)
+    
     return column_names
 
 def is_valid_result(df_csv):

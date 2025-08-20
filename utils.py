@@ -84,7 +84,8 @@ def deseripress_df(data_dict, name="df"):
     compressed = base64.b64decode(encoded.encode("utf-8"))
     csv_string = gzip.decompress(compressed).decode("utf-8")
 
-    print(csv_string)
+    if csv_string.strip() == "":
+        return pd.DataFrame()
 
     df = pd.read_csv(io.StringIO(csv_string))
 
@@ -94,7 +95,7 @@ def deseripress_df(data_dict, name="df"):
             if col in df.columns:
                 try:
                     df[col] = df[col].astype(dtype)
-                except Exception as e:
+                except Exception:
                     pass
 
     if f"{name}_index" in data_dict:

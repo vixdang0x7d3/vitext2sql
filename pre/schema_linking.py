@@ -29,10 +29,11 @@ from .query_lsh import LSHChromaNormalizer
 def reduce_columns(sql: str, subset_columns: set[str]) -> str:
     # Match tên bảng: hỗ trợ có hoặc không có backtick
     table_match = re.search(
-        r"create\s+(?:or\s+replace\s+)?table\s+`?([^\s`(]+)`?", sql, re.IGNORECASE
+    r"create\s+(?:or\s+replace\s+)?table\s+(?:`([^`]+)`|([^\s(]+))", 
+    sql, 
+    re.IGNORECASE
     )
-    assert table_match, sql
-    table_name = table_match.group(1)
+    table_name = table_match.group(1) or table_match.group(2)
 
     # Lấy block định nghĩa cột
     columns_block_match = re.search(
@@ -49,11 +50,10 @@ def reduce_columns(sql: str, subset_columns: set[str]) -> str:
         if not line or line.upper().startswith("FOREIGN KEY"):
             continue
 
-        # Match tên cột: hỗ trợ có hoặc không có backtick
-        col_match = re.match(r"`?([^\s`]+)`?", line)
-        if not col_match:
-            continue
-        col_name = col_match.group(1)
+        
+        # Match tên cột, có hoặc không có backtick
+        col_match = re.match(r"`([^`]+)`|([^\s,]+)", line)
+        col_name = col_match.group(1) or col_match.group(2)
 
         if col_name in subset_columns:
             filtered_lines.append(f"  {line},")
@@ -284,7 +284,50 @@ def ask_model_sl(db_folder,db_path,task, id, db_name,chat_session,log_callback=N
     #         log("Dưới 20k - không schema linking")
 
 
-ask_prompt = """"
+ask_prompt = """
+You are a SQL schema-linking assistant.
+    INSTRUCTIONS:
+        - Input: You will be given only a subset of all available tables (e.g., 5 out of 10). Each table has schema information, and you are also given the natural-language task.
+        - Output: For each provided table, decide whether it is needed to generate SQL for the task
+ 
+    REQUIREMENTS:
+        1. Do schema linking only with the given tables in the current request, but also consider that other related tables may exist outside this subset ,if you detect that a JOIN or foreign key reference points to a missing table, assume that missing table exists and take that table as related to the task .When uncertain, follow the principle "dư còn hơn thiếu" (prefer including possible relevant tables), but avoid unnecessary joins — prefer correctness and minimality.
+        2. Always include all four fields in your JSON object for each table:
+            - "think": your reasoning in Vietnamese
+            - "answer": "Y" or "N"
+            - "columns": list of relevant columns (empty list if none)
+            - "table name": the table's name
+    
+        3. If the answer is "Y", list the columns you think are relevant in a Python list format.
+        4. Return a list of ** separate JSON object for each table** inside a single JSON code block. Do not merge multiple tables into one object.
+        5. Do not include tables coming from the assistant role again in the output.
+
+    Format example:
+
+   ```json
+    [
+    {{
+        "think": "Bảng Customer chứa thông tin khách hàng, có thể liên quan tới task phân tích hành vi người dùng.",
+        "answer": "Y",
+        "columns": ["CustomerID", "Name", "Address"],
+        "table name": "Customer"
+    }},
+    {{
+        "think": "Bảng Order chứa thông tin đơn hàng, liên quan đến phân tích doanh số.",
+        "answer": "Y",
+        "columns": ["OrderID", "CustomerID", "OrderDate", "TotalAmount"],
+        "table name": "Order"
+    }},
+    {{
+        "think": "Bảng Product có thông tin sản phẩm, nhưng task không cần dữ liệu sản phẩm chi tiết.",
+        "answer": "N",
+        "columns": [],
+        "table name": "Product"
+    }}
+    ]
+```
+
+
     Table info: {0}
 
     Task: {1}
@@ -363,7 +406,7 @@ def ask_model_sl_(db_folder,db_path,tb_info, task, chat_session, db_name, id,log
             
     chat_session.init_messages()
 
-    for chunk in chunk_list(tbs, 5):  # mỗi lần  bảng
+    for chunk in chunk_list(tbs, 5):  # mỗi lần bảng
         max_try = 2
         tb_text = "\n\n".join(chunk)
         input_prompt = ask_prompt.format(tb_text, task, db_des)
@@ -375,6 +418,8 @@ def ask_model_sl_(db_folder,db_path,tb_info, task, chat_session, db_name, id,log
             print(response)  # debug
             # if len(response) == 1:
             #     print("len la 1")
+            tables_y = []
+            tables_n = []
             tables= []
             try:
                 if len(response) == 1:
@@ -384,24 +429,38 @@ def ask_model_sl_(db_folder,db_path,tb_info, task, chat_session, db_name, id,log
                     for tb in response:
                         tables.append(json.load(tb))
                 for table in tables:
-   
                     assert table["answer"] in ["Y", "N"], (
                         'table["answer"] should be in ["Y", "N"]'
                     )
-                    readable_log = (
-                        f"Bảng: {table.get('table name', "")} \n"
-                        f"- Trả lời: {'Có liên quan tới câu hỏi' if table['answer'] == 'Y' else 'Không liên quan'}"
-                        f"{(
-                            f'\n- Cột liên quan: {', '.join(table.get('columns', []))}\n- Giải thích: {table.get('think', 'Không có giải thích')}'
-                            if table['answer'] == 'Y'
-                            else f'\n- Giải thích: {table.get("think", "Không có giải thích")}'
-                        )}"
-                    )
-                    # readable_log = "a"
-                    log(readable_log)
+                    if table['answer'] == 'Y':
+                        tables_y.append(table)
+                    else:
+                        tables_n.append(table)
+                    linked.append(table)
+
+                # Log các bảng "Y"
+                if tables_y:
+                    log("===== Bảng Có Liên Quan (Y) =====")
+                    for table in tables_y:
+                        readable_log = (
+                            f"Bảng: {table.get('table name', '')}\n"
+                            f"- Cột liên quan: {', '.join(table.get('columns') or [])}\n"
+                            f"- Giải thích: {table.get('think', 'Không có giải thích')}"
+                        )
+                        log(readable_log)
+
+                # Log các bảng "N"
+                if tables_n:
+                    log("===== Bảng Không Liên Quan (N) =====")
+                    for table in tables_n:
+                        readable_log = (
+                            f"Bảng: {table.get('table name', '')}\n"
+                            f"- Giải thích: {table.get('think', 'Không có giải thích')}"
+                        )
+                        log(readable_log)
                     # table_name = re.search(r'^Table full name:\s*(.+)$', tb, re.MULTILINE).group(1)
                     # data["table name"] = table_name
-                    linked.append(table)
+                
                 success = True
                 break  # thoát vòng while nếu thành công
             except Exception as e:
